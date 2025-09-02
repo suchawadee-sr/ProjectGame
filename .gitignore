@@ -1,0 +1,3 @@
+# Ignore Godot editor-specific data
+.godot/
+*.import
