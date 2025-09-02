@@ -1,11 +1,20 @@
 extends Area2D
 
+@export var fly_speed: float = 120.0    # ความเร็วบินไปทางซ้าย (px/sec)
+@export var bob_amplitude: float = 16.0 # ระยะส่ายขึ้นลง (px)
+@export var bob_period: float = 1.0     # รอบการส่าย (วินาที)
 
-# Called when the node enters the scene tree for the first time.
+var _y0: float
+var _t: float = 0.0
+
 func _ready():
-	pass # Replace with function body.
+	_y0 = position.y
+	if has_node("AnimatedSprite2D"):
+		$AnimatedSprite2D.play()
 
-
-# Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
-	position.x -= get_parent().speed / 2
+	_t += delta
+	# บินซ้ายด้วยความเร็วคงที่ (เพิ่มจากเอฟเฟกต์กล้อง)
+	position.x -= fly_speed * delta
+	# โบกขึ้นลงเล็กน้อย
+	position.y = _y0 + sin(_t * TAU / bob_period) * bob_amplitude
