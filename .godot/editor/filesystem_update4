@@ -1,1 +1,5 @@
 res://scenes/main.tscn
+res://scenes/main.gd
+res://scenes/GameState.gd
+res://scenes/MainMenu.tscn
+res://scenes/MainMenu.gd
