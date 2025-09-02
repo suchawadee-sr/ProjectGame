@@ -1,5 +1,19 @@
 # Godot 4
 .godot/
 
-# (สำหรับโปรเจกต์ Godot 3 เท่านั้น)
+# (เฉพาะโปรเจกต์เก่า Godot 3)
 .import/
+# Text files เก็บเป็น LF
+* text=auto eol=lf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.wav binary
+*.ogg binary
+*.ttf binary
+*.otf binary
+
+# Godot import/metadata
+*.import -text
