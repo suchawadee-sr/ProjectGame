@@ -7,8 +7,25 @@ var barrel_scene = preload("res://scenes/barrel.tscn")
 var bird_scene   = preload("res://scenes/bird.tscn")
 var coin_scene   = preload("res://scenes/Coin.tscn")
 
-var obstacle_types := [stump_scene, rock_scene, barrel_scene]
-var bird_heights: Array[int] = [200, 390]
+# ====== Stage assets ======
+const BG1_PATH     := "res://scenes/bg.tscn"
+const GROUND1_PATH := "res://scenes/ground.tscn"
+const BG2_PATH     := "res://scenes/bg2.tscn"
+const GROUND2_PATH := "res://scenes/ground2.tscn"
+const BG1_CANDIDATES      := ["res://scenes/bg.tscn", "res://bg.tscn"]
+const GROUND1_CANDIDATES  := ["res://scenes/ground.tscn", "res://ground.tscn"]
+const BG2_CANDIDATES      := ["res://scenes/bg2.tscn", "res://bg2.tscn"]
+const GROUND2_CANDIDATES  := ["res://scenes/ground2.tscn", "res://ground2.tscn"]
+
+# กลุ่มสิ่งกีดขวาง/ความสูงนก แยกตามสเตจ
+var obst_stage1: Array = [stump_scene, rock_scene, barrel_scene]
+var obst_stage2: Array = [barrel_scene, rock_scene, stump_scene]
+var bird_y_stage1: Array[int] = [200, 390]
+var bird_y_stage2: Array[int] = [240, 400]
+
+# ตัวแปรที่ generator ใช้งาน (ต้องมีแน่นอน)
+var obstacle_types: Array = obst_stage1.duplicate()
+var bird_heights: Array[int] = bird_y_stage1.duplicate()
 
 # ====== Game vars ======
 const DINO_START_POS := Vector2i(150, 485)
@@ -16,6 +33,7 @@ const CAM_START_POS  := Vector2i(576, 324)
 
 var screen_size: Vector2i
 var ground_height: int
+var floor_y_local: float = 0.0   # baseline Y ของพื้น (จาก Marker "Floor")
 
 var score: float
 const SCORE_MODIFIER: int = 10
@@ -38,24 +56,8 @@ const Z_OBS := 10
 const Z_ITEMS := 12
 const Z_DINO := 20
 
-func _apply_draw_order() -> void:
-	# Bg อาจเป็น Node2D/ParallaxBackground (CanvasItem) หรืออย่างอื่น
-	if $Bg is CanvasItem:
-		($Bg as CanvasItem).z_index = Z_BG
-	elif $Bg is CanvasLayer:
-		($Bg as CanvasLayer).layer = -10  # เผื่อกรณีเป็น CanvasLayer
-
-	if $Ground is CanvasItem:
-		($Ground as CanvasItem).z_index = Z_GROUND
-
-	if $Dino is CanvasItem:
-		($Dino as CanvasItem).z_index = Z_DINO
-
-	if items is CanvasItem:
-		(items as CanvasItem).z_index = Z_ITEMS
-
 # ====== Items (เหรียญ) ======
-@onready var items := $Items                         # Node2D
+@onready var items := $Items
 var item_lanes_y: Array[float] = [485.0, 430.0, 390.0]
 const COIN_GAP_MIN: float = 500.0
 const COIN_GAP_MAX: float = 900.0
@@ -83,7 +85,7 @@ const HIT_REWARD_POINTS: int = 50
 const HIT_COOLDOWN: float = 0.35
 var _last_hit_time: float = -1000.0
 
-# ====== HUD refs (ปล่อยว่างไว้ แล้วไปตั้งค่าใน _ensure_inv_hud) ======
+# ====== HUD refs ======
 var inv_panel: Control
 var inv_bar: ProgressBar
 var inv_label: Label
@@ -92,15 +94,16 @@ var inv_label: Label
 var rng := RandomNumberGenerator.new()
 
 # ====== Stage switch (HUD score) ======
-const STAGE2_HUD_THRESHOLD: int = 1000   # เป้าหมายบน HUD (score/SCORE_MODIFIER)
+const STAGE2_HUD_THRESHOLD: int = 500
 var stage2_switched: bool = false
 
 # ---------------------------------------------------------
 # Lifecycle
 # ---------------------------------------------------------
 func _ready() -> void:
-	screen_size   = get_window().size
-	ground_height = $Ground.get_node("Sprite2D").texture.get_height()
+	screen_size = get_window().size
+	if $Ground.has_node("Sprite2D"):
+		ground_height = $Ground.get_node("Sprite2D").texture.get_height()
 	$GameOver.get_node("Button").pressed.connect(new_game)
 	new_game()
 
@@ -119,8 +122,7 @@ func new_game() -> void:
 	_set_glow(false)
 
 	# clear obstacles
-	for obs in obstacles:
-		obs.queue_free()
+	for obs in obstacles: obs.queue_free()
 	obstacles.clear()
 
 	# reset nodes
@@ -128,13 +130,15 @@ func new_game() -> void:
 	$Dino.velocity = Vector2i(0, 0)
 	$Camera2D.position = CAM_START_POS
 	$Ground.position = Vector2i(0, 0)
-	_apply_draw_order()
-	
+
+	# กลับฉากแรกเสมอ
+	_apply_stage1()
+
 	# HUD
 	$HUD.get_node("StartLabel").show()
 	$GameOver.hide()
 
-	# สร้าง/ผูก InvPanel, InvBar, InvLabel (ถ้าไม่มีจะสร้างให้)
+	# ensure Inv HUD
 	_ensure_inv_hud()
 	inv_panel.hide()
 	inv_bar.min_value = 0.0
@@ -143,8 +147,7 @@ func new_game() -> void:
 	inv_label.text    = "0.0s"
 
 	# clear coins
-	for n in items.get_children():
-		n.queue_free()
+	for n in items.get_children(): n.queue_free()
 
 	# spacing refs
 	last_spawn_right = float($Camera2D.position.x) - 2000.0
@@ -162,8 +165,7 @@ func _process(delta: float) -> void:
 	if game_running:
 		# speed & difficulty
 		speed = START_SPEED + float(score) / float(SPEED_MODIFIER)
-		if speed > MAX_SPEED:
-			speed = MAX_SPEED
+		if speed > MAX_SPEED: speed = MAX_SPEED
 		adjust_difficulty()
 
 		# obstacles
@@ -177,7 +179,7 @@ func _process(delta: float) -> void:
 		score += speed * delta
 		show_score()
 
-		# >>> เปลี่ยนฉากเมื่อ HUD ถึง 5000 <<<
+		# stage switch when HUD score reached
 		var hud_score := int(score / SCORE_MODIFIER)
 		if (not stage2_switched) and hud_score >= STAGE2_HUD_THRESHOLD:
 			stage2_switched = true
@@ -188,7 +190,7 @@ func _process(delta: float) -> void:
 			next_invincible_score += 500
 			_start_invincible(INVINCIBLE_DURATION)
 
-		# countdown + HUD
+		# invincible countdown
 		if invincible:
 			var remaining: float = clamp(inv_end_time - _now_sec(), 0.0, INVINCIBLE_DURATION)
 			_update_inv_ui(remaining)
@@ -257,9 +259,10 @@ func generate_obs() -> void:
 		var scy: float = spr.scale.y
 		var half_w: int = int(round(tex_w * scx * 0.5))
 
-		var obs_y: int = screen_size.y - ground_height - int(round(tex_h * scy / 2.0)) + 5
-		var obs_x: int = start_x
-		add_obs(obs, obs_x, obs_y)
+		# ตำแหน่ง Y จาก baseline ของพื้น (Marker "Floor")
+		var obs_y: float = floor_y_local - (tex_h * scy * 0.5) + 5.0
+		var obs_x: float = float(start_x)
+		add_obs(obs, int(roundi(obs_x)), int(roundi(obs_y)))
 
 		last_spawn_right = float(obs_x + half_w)
 		last_spawn_type  = "obs"
@@ -267,13 +270,12 @@ func generate_obs() -> void:
 	next_obs_spawn_x = int(last_spawn_right) + randi_range(OBS_GAP_MIN, OBS_GAP_MAX)
 
 func add_obs(obs, x: int, y: int) -> void:
-	obs.position = Vector2i(x, y)
+	obs.position = Vector2(x, y)
 	if obs is CanvasItem:
-		(obs as CanvasItem).z_index = Z_OBS   # 
+		(obs as CanvasItem).z_index = Z_OBS
 	obs.body_entered.connect(hit_obs.bind(obs))
 	add_child(obs)
 	obstacles.append(obs)
-
 
 func remove_obs(obs) -> void:
 	if obs == null: return
@@ -320,8 +322,7 @@ func game_over() -> void:
 # Coins (one by one)
 # ---------------------------------------------------------
 func _last_obs_x() -> float:
-	if obstacles.is_empty():
-		return -1.0e12
+	if obstacles.is_empty(): return -1.0e12
 	var mx: float = -1.0e12
 	for o in obstacles:
 		if float(o.position.x) > mx:
@@ -350,7 +351,6 @@ func _start_invincible(sec: float) -> void:
 	invincible   = true
 	inv_end_time = _now_sec() + sec
 	_set_glow(true)
-	# show HUD immediately
 	_ensure_inv_hud()
 	inv_panel.show()
 	inv_bar.max_value = sec
@@ -361,8 +361,7 @@ func _update_inv_ui(remaining: float) -> void:
 	_ensure_inv_hud()
 	remaining = clamp(remaining, 0.0, INVINCIBLE_DURATION)
 	if remaining > 0.0:
-		if not inv_panel.visible:
-			inv_panel.show()
+		if not inv_panel.visible: inv_panel.show()
 		inv_bar.max_value = INVINCIBLE_DURATION
 		inv_bar.value     = remaining
 		inv_label.text    = "%0.1fs" % remaining
@@ -370,8 +369,7 @@ func _update_inv_ui(remaining: float) -> void:
 		inv_panel.hide()
 
 func _ensure_inv_hud() -> void:
-	if inv_panel != null and inv_bar != null and inv_label != null:
-		return
+	if inv_panel != null and inv_bar != null and inv_label != null: return
 	var hud := $HUD
 	var panel := hud.get_node_or_null("InvPanel") as Control
 	if panel == null:
@@ -403,17 +401,14 @@ func _ensure_inv_hud() -> void:
 
 func _ensure_glow_material() -> void:
 	var spr := $Dino.get_node("AnimatedSprite2D") as AnimatedSprite2D
-	if spr.material is ShaderMaterial:
-		return
+	if spr.material is ShaderMaterial: return
 	var sh := Shader.new()
 	sh.code = """
 shader_type canvas_item;
-
 uniform bool enabled = false;
 uniform vec4 glow_color : source_color = vec4(1.0, 1.0, 0.3, 1.0);
-uniform float thickness = 2.0; // px
+uniform float thickness = 2.0;
 uniform float speed = 6.0;
-
 void fragment() {
 	vec4 tex = texture(TEXTURE, UV);
 	if (!enabled) {
@@ -477,55 +472,173 @@ func _spawn_floating_text(world_pos: Vector2, text: String) -> void:
 # ---------------------------------------------------------
 # Stage switch helpers
 # ---------------------------------------------------------
-func _swap_node(old_node: Node, new_scene_path: String) -> void:
-	if not is_instance_valid(old_node):
-		return
+func _swap_node(old_node: Node, new_scene_path: String) -> bool:
+	if not is_instance_valid(old_node): return false
 	if not ResourceLoader.exists(new_scene_path):
-		return
+		push_warning("Swap fail: no scene at %s" % new_scene_path)
+		return false
 
-	var packed: PackedScene = load(new_scene_path) as PackedScene
+	var packed := load(new_scene_path) as PackedScene
 	if packed == null:
-		return
+		push_warning("Swap fail: load error %s" % new_scene_path)
+		return false
 
-	var new_node: Node = packed.instantiate()
-	new_node.name = old_node.name
+	var parent := old_node.get_parent()
+	var idx := old_node.get_index()
+	var old_name := old_node.name
 
-	# คัดลอกตำแหน่งอย่างปลอดภัย (บางฉากอาจไม่ใช่ Node2D)
+	var new_node := packed.instantiate()
+	new_node.name = old_name
 	if old_node is Node2D and new_node is Node2D:
 		(new_node as Node2D).position = (old_node as Node2D).position
 
-	old_node.replace_by(new_node, true)
+	# สลับแบบปลอดภัย
+	old_node.name = old_name + "_old"
+	parent.add_child(new_node)
+	parent.move_child(new_node, idx)
+	old_node.queue_free()
 
-func _apply_stage2() -> void:
-	# 1) เปลี่ยน BG + Ground
-	_swap_node($Bg,     "res://scenes/bg2.tscn")
-	_swap_node($Ground, "res://scenes/ground2.tscn")
+	print("[Swap] %s -> %s" % [old_name, new_scene_path])
+	return true
 
-	# อัปเดตความสูงพื้นใหม่
-	if $Ground.has_node("Sprite2D"):
-		ground_height = $Ground.get_node("Sprite2D").texture.get_height()
+func _swap_to_first_existing(node: Node, candidates: Array) -> bool:
+	for p in candidates:
+		if ResourceLoader.exists(p):
+			return _swap_node(node, p)
+	push_warning("No candidate exists for %s" % [candidates])
+	return false
 
-	# 2) เปลี่ยนชุดอ็อบสเตเคิล/นก (ปรับได้ตามต้องการ)
-	obstacle_types = [barrel_scene, rock_scene, stump_scene]
-	bird_heights   = [240, 400]
 
-	# 3) เคลียร์อ็อบสเตเคิลเดิม + รีเซ็ตตัวชี้ระยะ spawn
-	# เคลียร์ของเก่า + รีเซ็ตตัวชี้ระยะ spawn ให้เกิดเร็วขึ้น
+func _apply_stage1() -> void:
+	_swap_to_first_existing($Bg, BG1_CANDIDATES)
+	_swap_to_first_existing($Ground, GROUND1_CANDIDATES)
+	obstacle_types = obst_stage1.duplicate()
+	bird_heights   = bird_y_stage1.duplicate()
+	_refresh_ground_metrics()
+	_apply_draw_order()
+	_force_bg_behind()
 	for o in obstacles: o.queue_free()
 	obstacles.clear()
 	last_spawn_right = float($Camera2D.position.x)
 	last_spawn_type  = ""
-	next_obs_spawn_x = int($Camera2D.position.x) + 200  # ให้เกิดไวขึ้น
+	next_obs_spawn_x = int($Camera2D.position.x) + screen_size.x + 100
+	print("[Stage] 1 applied")
 
-	# จัดลำดับวาดสำหรับ Bg/Ground/Dino/Items ที่เพิ่งถูกสลับ
+func _apply_stage2() -> void:
+	_swap_to_first_existing($Bg, BG2_CANDIDATES)
+	_swap_to_first_existing($Ground, GROUND2_CANDIDATES)
+	obstacle_types = obst_stage2.duplicate()
+	bird_heights   = bird_y_stage2.duplicate()
+	_refresh_ground_metrics()
 	_apply_draw_order()
-
-
-	# 4) (ออปชัน) แสดงข้อความบน HUD ถ้ามี StageLabel
+	_force_bg_behind()
+	for o in obstacles: o.queue_free()
+	obstacles.clear()
+	last_spawn_right = float($Camera2D.position.x)
+	last_spawn_type  = ""
+	next_obs_spawn_x = int($Camera2D.position.x) + 200
 	if $HUD.has_node("StageLabel"):
 		var L := $HUD.get_node("StageLabel") as Label
 		L.text = "STAGE 2"
 		L.show()
+	print("[Stage] 2 applied")
+
+
+# ---------------------------------------------------------
+# Draw order / Ground metrics
+# ---------------------------------------------------------
+func _apply_draw_order() -> void:
+	if $Bg is CanvasItem:        ($Bg as CanvasItem).z_index = Z_BG
+	elif $Bg is CanvasLayer:     ($Bg as CanvasLayer).layer = -10
+	if $Ground is CanvasItem:    ($Ground as CanvasItem).z_index = Z_GROUND
+	if $Dino is CanvasItem:      ($Dino as CanvasItem).z_index = Z_DINO
+	if items is CanvasItem:      (items as CanvasItem).z_index = Z_ITEMS
+
+func _force_bg_behind() -> void:
+	if $Bg is CanvasLayer:
+		($Bg as CanvasLayer).layer = -10
+	else:
+		_set_ci_recursive($Bg, Z_BG)
+
+func _set_ci_recursive(n: Node, z_val: int) -> void:
+	if n is CanvasItem:
+		var ci := n as CanvasItem
+		ci.z_index = z_val
+		ci.z_as_relative = true
+	for c in n.get_children():
+		_set_ci_recursive(c, z_val)
+
+# หา Y ของขอบบนจาก CollisionShape2D (ถ้าเจอ)
+func _floor_y_from_collision() -> float:
+	var cs := $Ground.find_child("CollisionShape2D", true, false) as CollisionShape2D
+	if cs == null or cs.shape == null:
+		return NAN
+
+	var top_y := INF
+	var shp := cs.shape
+
+	if shp is RectangleShape2D:
+		var s := (shp as RectangleShape2D).size
+		top_y = cs.to_global(Vector2(0, -s.y * 0.5)).y
+
+	elif shp is SegmentShape2D:
+		var seg := shp as SegmentShape2D
+		top_y = min(cs.to_global(seg.a).y, cs.to_global(seg.b).y)
+
+	elif shp is CapsuleShape2D:
+		var cap := shp as CapsuleShape2D
+		var top_local := Vector2(0, -(cap.height * 0.5 + cap.radius))
+		top_y = cs.to_global(top_local).y
+
+	elif shp is CircleShape2D:
+		var cir := shp as CircleShape2D
+		top_y = cs.to_global(Vector2(0, -cir.radius)).y
+
+	elif shp is ConvexPolygonShape2D:
+		for p in (shp as ConvexPolygonShape2D).points:
+			top_y = min(top_y, cs.to_global(p).y)
+
+	elif shp is ConcavePolygonShape2D:
+		var segs := (shp as ConcavePolygonShape2D).segments
+		for i in range(0, segs.size(), 2):
+			top_y = min(top_y, cs.to_global(segs[i]).y, cs.to_global(segs[i + 1]).y)
+
+	if top_y == INF:
+		return NAN
+	return top_y
+
+
+# อัปเดตค่าพื้น: ใช้ Marker "Floor" → ถ้าไม่มี ใช้ CollisionShape2D → ถ้าไม่มีอีก ค่อยเดาจาก Sprite
+func _refresh_ground_metrics() -> void:
+	var spr := $Ground.get_node_or_null("Sprite2D") as Sprite2D
+	if spr:
+		ground_height = spr.texture.get_height()
+
+	# 1) ใช้ Marker2D "Floor" ถ้ามี
+	var m := $Ground.get_node_or_null("Floor") as Node2D
+	if m:
+		floor_y_local = m.global_position.y
+		return
+
+	# 2) ไม่มี Marker → ใช้ CollisionShape2D
+	var y_from_col := _floor_y_from_collision()
+	if not is_nan(y_from_col):
+		floor_y_local = y_from_col
+		return
+
+	# 3) Fallback เดาจาก Sprite
+	if spr:
+		var tex_h := float(spr.texture.get_height())
+		var scy   := float(spr.scale.y)
+		var sprite_top := spr.global_position.y - (tex_h * scy * 0.5)
+		floor_y_local = sprite_top + 8.0
+		push_warning("No Floor marker/CollisionShape2D; approximate floor y=%.1f" % floor_y_local)
+	else:
+		floor_y_local = float(screen_size.y - ground_height)
+		push_warning("Ground has no Sprite2D; rough floor y=%.1f" % floor_y_local)
+
+
+
 
 #extends Node
 #
