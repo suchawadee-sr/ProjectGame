@@ -613,7 +613,7 @@ func generate_obs() -> void:
 		var scy: float = spr.scale.y
 		var half_w: int = int(round(tex_w * scx * 0.5))
 
-		var obs_y: int = screen_size.y - ground_height - int(round(tex_h * scy / 2.0)) + 5
+		var obs_y: int = 552 - int(round(tex_h * scy * 0.5))
 		var obs_x: int = start_x
 		add_obs(obs, obs_x, obs_y)
 
