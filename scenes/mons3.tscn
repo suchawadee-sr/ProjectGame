@@ -1,19 +1,17 @@
-[gd_scene load_steps=3 format=3 uid="uid://btm47qc4qtqvq"]
+[gd_scene load_steps=3 format=3 uid="uid://ck4d0ef3i65ao"]
 
-[ext_resource type="Texture2D" uid="uid://coovwxiq5b4p3" path="res://assets/img/obstacles/24.png" id="1_lo6en"]
+[ext_resource type="Texture2D" uid="uid://cj6ejeq4tm70h" path="res://assets/img/obstacles/mons3.png" id="1_lo6en"]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_f8geg"]
-size = Vector2(59.8895, 71.4957)
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_mjyeh"]
+size = Vector2(70, 72)
 
 [node name="mons3" type="Area2D"]
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 texture_filter = 1
-position = Vector2(0, -17)
-scale = Vector2(0.27253, 0.27253)
+scale = Vector2(0.762626, 0.762626)
 texture = ExtResource("1_lo6en")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(-7.7486e-07, -23.189)
-scale = Vector2(1.269, 1.11366)
-shape = SubResource("RectangleShape2D_f8geg")
+position = Vector2(-1, 2)
+shape = SubResource("RectangleShape2D_mjyeh")

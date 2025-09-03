@@ -1,18 +1,17 @@
 [gd_scene load_steps=3 format=3 uid="uid://wbgccb7k3uho"]
 
-[ext_resource type="Texture2D" uid="uid://dma3gulowb6yy" path="res://assets/img/obstacles/4.png" id="1_wlovn"]
+[ext_resource type="Texture2D" uid="uid://dw627phm3k4cw" path="res://assets/img/obstacles/mons1.png" id="1_wlovn"]
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_ehqem"]
-radius = 37.0
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_mjyeh"]
+size = Vector2(70, 72)
 
 [node name="mons1" type="Area2D"]
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 texture_filter = 1
-position = Vector2(0, -12)
-scale = Vector2(0.259285, 0.259285)
+scale = Vector2(0.762626, 0.762626)
 texture = ExtResource("1_wlovn")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(0, -15)
-shape = SubResource("CircleShape2D_ehqem")
+position = Vector2(-1, 2)
+shape = SubResource("RectangleShape2D_mjyeh")
