@@ -10,7 +10,7 @@
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_igwhu"]
 shader = ExtResource("5_04qun")
-shader_parameter/fog_color = Color(1, 1, 1, 1)
+shader_parameter/fog_color = Color(0, 0, 0, 1)
 shader_parameter/radius_px = 360.0
 shader_parameter/softness_px = 140.0
 shader_parameter/center_px = Vector2(0, 0)
