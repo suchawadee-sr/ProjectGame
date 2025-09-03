@@ -3,9 +3,9 @@
 [ext_resource type="Texture2D" uid="uid://c525jycvvecyd" path="res://assets/img/mort.png" id="1_0g0lj"]
 [ext_resource type="Script" uid="uid://laenb1kbne3w" path="res://scenes/dino.gd" id="1_1stpw"]
 [ext_resource type="AudioStream" uid="uid://dscpg6m666dta" path="res://assets/sound/jump.wav" id="2_60go1"]
-[ext_resource type="Texture2D" uid="uid://b3u1d863hrm23" path="res://Character/Idle.png" id="3_focm0"]
-[ext_resource type="Texture2D" uid="uid://00yf8fvknywc" path="res://Character/Jump.png" id="4_mdm24"]
-[ext_resource type="Texture2D" uid="uid://xjuw0lnp3wn7" path="res://Character/Run.png" id="5_u8i2d"]
+[ext_resource type="Texture2D" uid="uid://cwydtxv2a4l5b" path="res://Character/Idle.png" id="3_focm0"]
+[ext_resource type="Texture2D" uid="uid://bukw65uh18pxf" path="res://Character/Jump.png" id="4_mdm24"]
+[ext_resource type="Texture2D" uid="uid://bj1fa0qxu48eu" path="res://Character/Run.png" id="5_u8i2d"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_i6e61"]
 atlas = ExtResource("5_u8i2d")
@@ -145,7 +145,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"jump",
-"speed": 10.0
+"speed": 8.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -329,8 +329,8 @@ texture_filter = 1
 position = Vector2(0, -5)
 scale = Vector2(0.2, 0.2)
 sprite_frames = SubResource("SpriteFrames_i6e61")
-animation = &"run"
-autoplay = "run"
+animation = &"jump"
+autoplay = "idle"
 speed_scale = 0.8
 
 [node name="RunCol" type="CollisionShape2D" parent="."]
