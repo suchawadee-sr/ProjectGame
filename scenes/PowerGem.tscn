@@ -1,6 +1,6 @@
 [gd_scene load_steps=11 format=3 uid="uid://cichbrbnmsofm"]
 
-[ext_resource type="Script" path="res://scenes/PowerGem.gd" id="1_powergem"]
+[ext_resource type="Script" uid="uid://cq8f27j8kjykj" path="res://scenes/PowerGem.gd" id="1_powergem"]
 [ext_resource type="Texture2D" uid="uid://brjovc0e076v8" path="res://Super Pixel Objects Sample/outline_light/gem_large/frame0000.png" id="2_gem0"]
 [ext_resource type="Texture2D" uid="uid://dekcxonyshvmk" path="res://Super Pixel Objects Sample/outline_light/gem_large/frame0001.png" id="3_gem1"]
 [ext_resource type="Texture2D" uid="uid://34doflsw381r" path="res://Super Pixel Objects Sample/outline_light/gem_large/frame0002.png" id="4_gem2"]

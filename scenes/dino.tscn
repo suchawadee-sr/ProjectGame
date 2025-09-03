@@ -457,7 +457,6 @@ speed_scale = 0.8
 
 [node name="RunCol" type="CollisionShape2D" parent="."]
 position = Vector2(3.95, -1.325)
-scale = Vector2(1, 1)
 shape = SubResource("RectangleShape2D_whux2")
 
 [node name="DuckCol" type="CollisionShape2D" parent="."]

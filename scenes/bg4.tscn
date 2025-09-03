@@ -1,0 +1,65 @@
+[gd_scene load_steps=7 format=3 uid="uid://ci4yxnk4mg7o7"]
+
+[ext_resource type="Texture2D" uid="uid://y00omesvo7v0" path="res://assets/img/Pixel-Art-Battlegrounds/PNG/Battleground4/Bright/sky.png" id="1_udyrd"]
+[ext_resource type="Texture2D" uid="uid://cy5sjmbxwppd0" path="res://assets/img/Pixel-Art-Battlegrounds/PNG/Battleground4/Bright/houses.png" id="2_sil8p"]
+[ext_resource type="Texture2D" uid="uid://wtptom2bfcgu" path="res://assets/img/Pixel-Art-Battlegrounds/PNG/Battleground4/Bright/houses2.png" id="3_fsypr"]
+[ext_resource type="Texture2D" uid="uid://c6uk7geluqgyn" path="res://assets/img/Pixel-Art-Battlegrounds/PNG/Battleground4/Bright/houses1.png" id="4_2wtqk"]
+[ext_resource type="Texture2D" uid="uid://bir3le1scx3wt" path="res://assets/img/Pixel-Art-Battlegrounds/PNG/Battleground4/Bright/fountain&bush.png" id="5_ke2ln"]
+[ext_resource type="Texture2D" uid="uid://36dti87naqpt" path="res://assets/img/Pixel-Art-Battlegrounds/PNG/Battleground4/Bright/umbrella&policebox.png" id="6_tlfla"]
+
+[node name="Bg" type="ParallaxBackground"]
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(0, -5.96046e-08)
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("1_udyrd")
+centered = false
+
+[node name="ParallaxLayer" type="ParallaxLayer" parent="."]
+motion_scale = Vector2(0.5, 0.833)
+motion_mirroring = Vector2(1152, 0)
+
+[node name="Sprite2D" type="Sprite2D" parent="ParallaxLayer"]
+position = Vector2(0, -1)
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("2_sil8p")
+centered = false
+
+[node name="ParallaxLayer3" type="ParallaxLayer" parent="."]
+motion_scale = Vector2(0.6, 1)
+motion_mirroring = Vector2(1152, 0)
+
+[node name="Sprite2D" type="Sprite2D" parent="ParallaxLayer3"]
+position = Vector2(0, -1)
+scale = Vector2(0.599479, 0.600926)
+texture = ExtResource("3_fsypr")
+centered = false
+
+[node name="ParallaxLayer4" type="ParallaxLayer" parent="."]
+motion_scale = Vector2(0.7, 1.166)
+motion_mirroring = Vector2(1152, 0)
+
+[node name="Sprite2D" type="Sprite2D" parent="ParallaxLayer4"]
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("4_2wtqk")
+centered = false
+
+[node name="ParallaxLayer2" type="ParallaxLayer" parent="."]
+motion_scale = Vector2(0.8, 1.333)
+motion_mirroring = Vector2(1152, 0)
+
+[node name="Sprite2D" type="Sprite2D" parent="ParallaxLayer2"]
+position = Vector2(6, -3)
+scale = Vector2(0.596875, 0.602778)
+texture = ExtResource("5_ke2ln")
+centered = false
+
+[node name="ParallaxLayer5" type="ParallaxLayer" parent="."]
+motion_scale = Vector2(0.7, 0.7)
+motion_mirroring = Vector2(1152, 0)
+
+[node name="Sprite2D" type="Sprite2D" parent="ParallaxLayer5"]
+position = Vector2(0, -2.38419e-07)
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("6_tlfla")
+centered = false
