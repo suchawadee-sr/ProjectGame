@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://y00omesvo7v0"
-path="res://.godot/imported/Sky.png-c53f48222963eb776890f86e8de763e9.ctex"
+uid="uid://36dti87naqpt"
+path="res://.godot/imported/umbrella&policebox.png-c67fb4d5a9ec488ef126afc0772d0bda.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/img/Pixel-Art-Battlegrounds/PNG/Battleground4/Bright/Sky.png"
-dest_files=["res://.godot/imported/Sky.png-c53f48222963eb776890f86e8de763e9.ctex"]
+source_file="res://assets/img/Pixel-Art-Battlegrounds/PNG/Battleground4/Bright/umbrella&policebox.png"
+dest_files=["res://.godot/imported/umbrella&policebox.png-c67fb4d5a9ec488ef126afc0772d0bda.ctex"]
 
 [params]
 

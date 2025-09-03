@@ -1,0 +1,18 @@
+[gd_scene load_steps=3 format=3 uid="uid://3jc71a1jy30k"]
+
+[ext_resource type="Texture2D" uid="uid://cf03hd1tfkf8y" path="res://assets/img/Pixel-Art-Battlegrounds/PNG/background 3/Plan 1.png" id="1_ms2un"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_te2nw"]
+size = Vector2(2304, 97)
+
+[node name="Ground" type="StaticBody2D"]
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(5.96046e-08, 211)
+scale = Vector2(4.00521, 1.34877)
+texture = ExtResource("1_ms2un")
+centered = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(1153, 599)
+shape = SubResource("RectangleShape2D_te2nw")

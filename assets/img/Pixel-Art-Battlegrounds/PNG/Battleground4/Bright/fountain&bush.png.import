@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://y00omesvo7v0"
-path="res://.godot/imported/Sky.png-c53f48222963eb776890f86e8de763e9.ctex"
+uid="uid://bir3le1scx3wt"
+path="res://.godot/imported/fountain&bush.png-4c0679ba430eb1036544140571db34f0.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/img/Pixel-Art-Battlegrounds/PNG/Battleground4/Bright/Sky.png"
-dest_files=["res://.godot/imported/Sky.png-c53f48222963eb776890f86e8de763e9.ctex"]
+source_file="res://assets/img/Pixel-Art-Battlegrounds/PNG/Battleground4/Bright/fountain&bush.png"
+dest_files=["res://.godot/imported/fountain&bush.png-4c0679ba430eb1036544140571db34f0.ctex"]
 
 [params]
 
