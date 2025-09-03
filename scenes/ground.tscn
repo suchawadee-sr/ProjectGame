@@ -15,7 +15,7 @@ texture = ExtResource("1_pybca")
 centered = false
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(1154, 599)
+position = Vector2(1153, 599)
 shape = SubResource("RectangleShape2D_te2nw")
 
 [node name="Sprite2D2" type="Sprite2D" parent="."]

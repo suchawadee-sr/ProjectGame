@@ -1,26 +1,26 @@
-[gd_scene load_steps=14 format=3 uid="uid://crugqy7j4jt4a"]
+[gd_scene load_steps=14 format=3 uid="uid://640in0u8vcfe"]
 
-[ext_resource type="Texture2D" uid="uid://bmv1jqnlmwiyb" path="res://assets/img/obstacles/Bird.png" id="1_rxtif"]
-[ext_resource type="Script" uid="uid://coy3p17sxi64m" path="res://scenes/bat.gd" id="1_sru60"]
-[ext_resource type="Texture2D" uid="uid://ba7nxk30u14hr" path="res://assets/img/obstacles/Bat Black Pink/Bat1.png" id="3_bdh3x"]
-[ext_resource type="Texture2D" uid="uid://djrvvyh4yoh1b" path="res://assets/img/obstacles/Bat Black Pink/Bat2.png" id="4_jggmu"]
-[ext_resource type="Texture2D" uid="uid://3co601856n5a" path="res://assets/img/obstacles/Bat Black Pink/Bat3.png" id="5_hrcfq"]
-[ext_resource type="Texture2D" uid="uid://t8w3o0yoaend" path="res://assets/img/obstacles/Bat Black Pink/Bat4.png" id="6_ehebh"]
+[ext_resource type="Script" uid="uid://coy3p17sxi64m" path="res://scenes/bat.gd" id="1_5fn3r"]
+[ext_resource type="Texture2D" uid="uid://bmv1jqnlmwiyb" path="res://assets/img/obstacles/Bird.png" id="2_8qtcx"]
+[ext_resource type="Texture2D" uid="uid://ba7nxk30u14hr" path="res://assets/img/obstacles/Bat Black Pink/Bat1.png" id="3_x4bhu"]
+[ext_resource type="Texture2D" uid="uid://djrvvyh4yoh1b" path="res://assets/img/obstacles/Bat Black Pink/Bat2.png" id="4_k0o7o"]
+[ext_resource type="Texture2D" uid="uid://3co601856n5a" path="res://assets/img/obstacles/Bat Black Pink/Bat3.png" id="5_67y1s"]
+[ext_resource type="Texture2D" uid="uid://t8w3o0yoaend" path="res://assets/img/obstacles/Bat Black Pink/Bat4.png" id="6_p5otw"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_3nmc2"]
-atlas = ExtResource("1_rxtif")
+atlas = ExtResource("2_8qtcx")
 region = Rect2(0, 0, 32, 32)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_sun05"]
-atlas = ExtResource("1_rxtif")
+atlas = ExtResource("2_8qtcx")
 region = Rect2(32, 0, 32, 32)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_byqkj"]
-atlas = ExtResource("1_rxtif")
+atlas = ExtResource("2_8qtcx")
 region = Rect2(64, 0, 32, 32)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_imiir"]
-atlas = ExtResource("1_rxtif")
+atlas = ExtResource("2_8qtcx")
 region = Rect2(96, 0, 32, 32)
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_5lysr"]
@@ -44,16 +44,16 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
-"texture": ExtResource("3_bdh3x")
+"texture": ExtResource("3_x4bhu")
 }, {
 "duration": 1.0,
-"texture": ExtResource("4_jggmu")
+"texture": ExtResource("4_k0o7o")
 }, {
 "duration": 1.0,
-"texture": ExtResource("5_hrcfq")
+"texture": ExtResource("5_67y1s")
 }, {
 "duration": 1.0,
-"texture": ExtResource("6_ehebh")
+"texture": ExtResource("6_p5otw")
 }],
 "loop": true,
 "name": &"flying_2",
@@ -64,21 +64,21 @@ animations = [{
 size = Vector2(43, 51)
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_s8m3f"]
-radius = 43.0
-height = 92.0
+radius = 49.0
+height = 134.0
 
-[node name="bird" type="Area2D"]
-script = ExtResource("1_sru60")
+[node name="bat" type="Area2D"]
+script = ExtResource("1_5fn3r")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+visible = false
 texture_filter = 1
 scale = Vector2(4, 4)
 sprite_frames = SubResource("SpriteFrames_5lysr")
-animation = &"flying_1"
-autoplay = "flying_1"
+animation = &"flying_2"
+autoplay = "flying_2"
 
 [node name="AnimatedSprite2D2" type="AnimatedSprite2D" parent="."]
-visible = false
 texture_filter = 1
 scale = Vector2(1.40158, 1.40158)
 sprite_frames = SubResource("SpriteFrames_5lysr")
@@ -88,10 +88,10 @@ frame_progress = 0.896392
 flip_h = true
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+visible = false
 position = Vector2(-38.5, 2.5)
 shape = SubResource("RectangleShape2D_fqt42")
 
 [node name="CollisionShape2D2" type="CollisionShape2D" parent="."]
-position = Vector2(16, 0)
 rotation = 1.5708
 shape = SubResource("CapsuleShape2D_s8m3f")

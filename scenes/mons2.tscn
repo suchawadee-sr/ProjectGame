@@ -1,0 +1,20 @@
+[gd_scene load_steps=3 format=3 uid="uid://cr1jwc7v70ydd"]
+
+[ext_resource type="Texture2D" uid="uid://dvqjwpny14bac" path="res://assets/img/obstacles/7.png" id="1_gtcf0"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_w50kb"]
+radius = 25.6348
+height = 67.8082
+
+[node name="mons2" type="Area2D"]
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture_filter = 1
+position = Vector2(0, -17)
+scale = Vector2(0.319372, 0.319372)
+texture = ExtResource("1_gtcf0")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -18)
+scale = Vector2(1.20929, 1.20929)
+shape = SubResource("CapsuleShape2D_w50kb")

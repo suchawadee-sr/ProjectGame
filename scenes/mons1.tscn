@@ -1,0 +1,18 @@
+[gd_scene load_steps=3 format=3 uid="uid://wbgccb7k3uho"]
+
+[ext_resource type="Texture2D" uid="uid://dma3gulowb6yy" path="res://assets/img/obstacles/4.png" id="1_wlovn"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_ehqem"]
+radius = 37.0
+
+[node name="mons1" type="Area2D"]
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture_filter = 1
+position = Vector2(0, -12)
+scale = Vector2(0.259285, 0.259285)
+texture = ExtResource("1_wlovn")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -15)
+shape = SubResource("CircleShape2D_ehqem")

@@ -1,0 +1,16 @@
+[gd_scene load_steps=2 format=3 uid="uid://cx82mjkdrxvvl"]
+
+[ext_resource type="Texture2D" uid="uid://cfh1lkdij7a0e" path="res://assets/img/obstacles/Rock1_grass_shadow1.png" id="1_hjq04"]
+
+[node name="Rock2" type="Area2D"]
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture_filter = 1
+position = Vector2(0, -15)
+scale = Vector2(1.55469, 1.55469)
+texture = ExtResource("1_hjq04")
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="."]
+position = Vector2(-21, 0.999998)
+scale = Vector2(0.894022, 1.58838)
+polygon = PackedVector2Array(63.7568, -28.9603, 64.8754, -0.62957, 33.5562, 18.2576, -12.304, 7.55485, -15.6596, -24.5533, 22.3708, -40.2925)

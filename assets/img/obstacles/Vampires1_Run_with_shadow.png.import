@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://y00omesvo7v0"
-path="res://.godot/imported/sky.png-29504f5cc2523075f06d7997ed88fa99.ctex"
+uid="uid://j77uu74ffy7s"
+path="res://.godot/imported/Vampires1_Run_with_shadow.png-1f5f663a0e99cd3e3d2ea59b6b308545.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/img/Pixel-Art-Battlegrounds/PNG/Battleground4/Bright/sky.png"
-dest_files=["res://.godot/imported/sky.png-29504f5cc2523075f06d7997ed88fa99.ctex"]
+source_file="res://assets/img/obstacles/Vampires1_Run_with_shadow.png"
+dest_files=["res://.godot/imported/Vampires1_Run_with_shadow.png-1f5f663a0e99cd3e3d2ea59b6b308545.ctex"]
 
 [params]
 

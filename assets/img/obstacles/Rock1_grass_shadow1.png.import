@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://y00omesvo7v0"
-path="res://.godot/imported/sky.png-29504f5cc2523075f06d7997ed88fa99.ctex"
+uid="uid://cfh1lkdij7a0e"
+path="res://.godot/imported/Rock1_grass_shadow1.png-2746fcfe35764ad09927320670e038c5.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/img/Pixel-Art-Battlegrounds/PNG/Battleground4/Bright/sky.png"
-dest_files=["res://.godot/imported/sky.png-29504f5cc2523075f06d7997ed88fa99.ctex"]
+source_file="res://assets/img/obstacles/Rock1_grass_shadow1.png"
+dest_files=["res://.godot/imported/Rock1_grass_shadow1.png-2746fcfe35764ad09927320670e038c5.ctex"]
 
 [params]
 

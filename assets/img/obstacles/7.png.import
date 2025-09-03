@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://y00omesvo7v0"
-path="res://.godot/imported/sky.png-29504f5cc2523075f06d7997ed88fa99.ctex"
+uid="uid://dvqjwpny14bac"
+path="res://.godot/imported/7.png-c0505b15400a7c55f46cd8ec1053dbb3.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/img/Pixel-Art-Battlegrounds/PNG/Battleground4/Bright/sky.png"
-dest_files=["res://.godot/imported/sky.png-29504f5cc2523075f06d7997ed88fa99.ctex"]
+source_file="res://assets/img/obstacles/7.png"
+dest_files=["res://.godot/imported/7.png-c0505b15400a7c55f46cd8ec1053dbb3.ctex"]
 
 [params]
 
