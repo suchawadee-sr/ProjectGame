@@ -52,7 +52,7 @@ link
 
 ## Credits
 ---
-[Game Template](ttps://github.com/russs123/dino_run_tut)
+[Game Template](https://github.com/russs123/dino_run_tut)
 [Sprite Wolf](https://craftpix.net/freebies/free-werewolf-sprite-sheets-pixel-art/?fbclid=IwY2xjawMlTTKPACaTw2mRGRaZUAb9XfW8Q5fEkW1wmSAyc1dORlgyNTRuAR4et5gK0MiVhdA4nYumdOvjSZkT4KUUeC9VCMdGb698bxKO_FfYOR-Y8AQf1g_aem_BHFA8gY7_zOLn_dHejpSiQ)
 [Background Temple](https://craftpix.net/freebies/free-ancient-temple-pixel-game-backgrounds/?fbclid=IwY2xjawMlUdRleHRuA2FlbQIxMABicmlkETTKPACaTw2mRGRaZUAb9XfW8Q5fEkW1wmSQJq7JEAj6e02MuGMqMH4wnW3HWX8GK6wZxS70CwQ4IGWIUkpmFg_aem_wtfPe8yXYlXGQ7NypRI6MA)
 [Background Sanctuary](http://free-game-assets.itch.io/free-pixel-art-fantasy-game-battlegrounds?fbclid=IwY2xjawMlUctleHRuA2FlbQIxMABicmlkETTKPACaTw2mRGRaZUAb9XfW8Q5fEkW1wmSj1BsND4SUxQsA5p9E8o_Y0T_4OHVyt00rL_uzpCco-u6114vWPA_aem_T2a_10MIWXN1xm04yX5yXQ)
