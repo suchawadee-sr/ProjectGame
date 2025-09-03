@@ -1,11 +1,11 @@
 [gd_scene load_steps=7 format=3 uid="uid://bpkphu8qj137m"]
 
-[ext_resource type="Texture2D" uid="uid://f01xb1s6fxs8" path="res://Pixel-Art-Battlegrounds/PNG/Battleground2/Pale/bg.png" id="1_r6ch1"]
-[ext_resource type="Texture2D" uid="uid://dulxa202321n5" path="res://Pixel-Art-Battlegrounds/PNG/Battleground2/Pale/mountaims.png" id="2_4la4c"]
-[ext_resource type="Texture2D" uid="uid://dtckrtnv0u6m0" path="res://Pixel-Art-Battlegrounds/PNG/Battleground2/Pale/wall@windows.png" id="3_j28yk"]
-[ext_resource type="Texture2D" uid="uid://eordillu83eq" path="res://Pixel-Art-Battlegrounds/PNG/Battleground2/Pale/columns&falgs.png" id="5_u8vpk"]
-[ext_resource type="Texture2D" uid="uid://b6lr0oel0nwhl" path="res://Pixel-Art-Battlegrounds/PNG/Battleground2/Pale/dragon.png" id="6_4183b"]
-[ext_resource type="Texture2D" uid="uid://bf3mj7vgl86d1" path="res://Pixel-Art-Battlegrounds/PNG/Battleground2/Pale/candeliar.png" id="7_6y8fd"]
+[ext_resource type="Texture2D" uid="uid://f01xb1s6fxs8" path="res://assets/img/Pixel-Art-Battlegrounds/PNG/Battleground2/Pale/bg.png" id="1_r6ch1"]
+[ext_resource type="Texture2D" uid="uid://dulxa202321n5" path="res://assets/img/Pixel-Art-Battlegrounds/PNG/Battleground2/Pale/mountaims.png" id="2_4la4c"]
+[ext_resource type="Texture2D" uid="uid://dtckrtnv0u6m0" path="res://assets/img/Pixel-Art-Battlegrounds/PNG/Battleground2/Pale/wall@windows.png" id="3_j28yk"]
+[ext_resource type="Texture2D" uid="uid://eordillu83eq" path="res://assets/img/Pixel-Art-Battlegrounds/PNG/Battleground2/Pale/columns&falgs.png" id="5_u8vpk"]
+[ext_resource type="Texture2D" uid="uid://b6lr0oel0nwhl" path="res://assets/img/Pixel-Art-Battlegrounds/PNG/Battleground2/Pale/dragon.png" id="6_4183b"]
+[ext_resource type="Texture2D" uid="uid://bf3mj7vgl86d1" path="res://assets/img/Pixel-Art-Battlegrounds/PNG/Battleground2/Pale/candeliar.png" id="7_6y8fd"]
 
 [node name="Bg" type="ParallaxBackground"]
 
