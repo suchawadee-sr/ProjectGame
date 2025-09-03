@@ -1,7 +1,6 @@
-[gd_scene load_steps=4 format=3 uid="uid://b5pwnh1tmyrnl"]
+[gd_scene load_steps=3 format=3 uid="uid://b5pwnh1tmyrnl"]
 
-[ext_resource type="Texture2D" uid="uid://cm3nine0akrvl" path="res://Pixel-Art-Battlegrounds/PNG/Battleground2/Pale/floor.png" id="1_pybca"]
-[ext_resource type="Texture2D" uid="uid://bf3mj7vgl86d1" path="res://Pixel-Art-Battlegrounds/PNG/Battleground2/Pale/candeliar.png" id="2_mi8v4"]
+[ext_resource type="Texture2D" uid="uid://cpgmmea0pwbbu" path="res://assets/img/background/ground.png" id="1_achns"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_te2nw"]
 size = Vector2(2304, 97)
@@ -9,23 +8,10 @@ size = Vector2(2304, 97)
 [node name="Ground" type="StaticBody2D"]
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-position = Vector2(1, 304)
-scale = Vector2(1.19948, 0.319444)
-texture = ExtResource("1_pybca")
+position = Vector2(0, 552)
+texture = ExtResource("1_achns")
 centered = false
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(1154, 599)
+position = Vector2(1152, 599.5)
 shape = SubResource("RectangleShape2D_te2nw")
-
-[node name="Sprite2D2" type="Sprite2D" parent="."]
-position = Vector2(-1, 22)
-scale = Vector2(0.598958, 0.691667)
-texture = ExtResource("2_mi8v4")
-centered = false
-
-[node name="Sprite2D3" type="Sprite2D" parent="."]
-position = Vector2(1145, 22)
-scale = Vector2(0.598958, 0.691667)
-texture = ExtResource("2_mi8v4")
-centered = false
