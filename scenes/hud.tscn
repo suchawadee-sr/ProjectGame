@@ -1,10 +1,27 @@
-[gd_scene load_steps=3 format=3 uid="uid://lyf4a3sklk1o"]
+[gd_scene load_steps=7 format=3 uid="uid://lyf4a3sklk1o"]
 
 [ext_resource type="FontFile" uid="uid://dbbmlg30b2vus" path="res://assets/fonts/retro.ttf" id="1_xwrdd"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_cafb6"]
 font = ExtResource("1_xwrdd")
 font_size = 30
+
+[sub_resource type="LabelSettings" id="LabelSettings_pux2v"]
+font = ExtResource("1_xwrdd")
+font_size = 18
+font_color = Color(0, 1, 1, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_wo06f"]
+font = ExtResource("1_xwrdd")
+font_size = 20
+font_color = Color(1, 1, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_gytcf"]
+font = ExtResource("1_xwrdd")
+
+[sub_resource type="LabelSettings" id="LabelSettings_x80ch"]
+font = ExtResource("1_xwrdd")
+font_color = Color(0.8, 0.8, 0.8, 1)
 
 [node name="HUD" type="CanvasLayer"]
 
@@ -73,3 +90,47 @@ offset_right = 248.0
 offset_bottom = 26.0
 text = "0.0s"
 label_settings = SubResource("LabelSettings_cafb6")
+
+[node name="StatsPanel" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 20.0
+offset_top = 100.0
+offset_right = 300.0
+offset_bottom = 220.0
+
+[node name="PerfectLabel" type="Label" parent="StatsPanel"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = 94.0
+offset_bottom = 36.0
+text = "PERFECT: 0"
+label_settings = SubResource("LabelSettings_pux2v")
+
+[node name="ComboLabel" type="Label" parent="StatsPanel"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 35.0
+offset_right = 98.0
+offset_bottom = 61.0
+text = "COMBO: x0"
+label_settings = SubResource("LabelSettings_wo06f")
+
+[node name="DistanceLabel" type="Label" parent="StatsPanel"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 60.0
+offset_right = 174.0
+offset_bottom = 84.0
+text = "MULTIPLIER: x1.0"
+label_settings = SubResource("LabelSettings_gytcf")
+
+[node name="MultiplierLabel" type="Label" parent="StatsPanel"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 85.0
+offset_right = 140.0
+offset_bottom = 109.0
+text = "DISTANCE: 0m"
+label_settings = SubResource("LabelSettings_x80ch")

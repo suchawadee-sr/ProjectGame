@@ -1,0 +1,66 @@
+[gd_scene load_steps=14 format=3 uid="uid://cbl2l1eqbyufj"]
+
+[ext_resource type="Script" path="res://Rocket.gd" id="1_5j84x"]
+[ext_resource type="Texture2D" uid="uid://xx4h4w1c2lue" path="res://assets/img/alchemy set/all png/Alchemy1_1.png" id="2_a62tx"]
+[ext_resource type="Texture2D" uid="uid://owe2eel31hs7" path="res://assets/img/alchemy set/all png/Alchemy1_2.png" id="3_djce1"]
+[ext_resource type="Texture2D" uid="uid://bpia3trl0s6f6" path="res://assets/img/alchemy set/all png/Alchemy1_3.png" id="4_pab0w"]
+[ext_resource type="Texture2D" uid="uid://cjlh2hg7dspas" path="res://assets/img/alchemy set/all png/Alchemy1_4.png" id="5_psdgm"]
+[ext_resource type="Texture2D" uid="uid://c0gqwll0pupgp" path="res://assets/img/alchemy set/all png/Alchemy1_5.png" id="6_44idh"]
+[ext_resource type="Texture2D" uid="uid://nkgwpn3ts8ey" path="res://assets/img/alchemy set/all png/Alchemy1_6.png" id="7_con8v"]
+[ext_resource type="Texture2D" uid="uid://ctpmi2kndrdl4" path="res://assets/img/alchemy set/all png/Alchemy1_7.png" id="8_4872b"]
+[ext_resource type="Texture2D" uid="uid://b1k4a0yqur01c" path="res://assets/img/alchemy set/all png/Alchemy1_8.png" id="9_qu7in"]
+[ext_resource type="Texture2D" uid="uid://bc8amccbld4ef" path="res://assets/img/alchemy set/all png/Alchemy1_9.png" id="10_u7tcd"]
+[ext_resource type="Texture2D" uid="uid://w5pvluq2uydx" path="res://assets/img/alchemy set/all png/Alchemy1_10.png" id="11_rofjm"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_s2sbq"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_a62tx")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_djce1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_pab0w")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_psdgm")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_44idh")
+}, {
+"duration": 1.0,
+"texture": ExtResource("7_con8v")
+}, {
+"duration": 1.0,
+"texture": ExtResource("8_4872b")
+}, {
+"duration": 1.0,
+"texture": ExtResource("9_qu7in")
+}, {
+"duration": 1.0,
+"texture": ExtResource("10_u7tcd")
+}, {
+"duration": 1.0,
+"texture": ExtResource("11_rofjm")
+}],
+"loop": true,
+"name": &"default",
+"speed": 12.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_ksxve"]
+radius = 16.0
+
+[node name="Rocket" type="Area2D"]
+script = ExtResource("1_5j84x")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+position = Vector2(4.76837e-07, 4.76837e-07)
+scale = Vector2(1.875, 1.875)
+sprite_frames = SubResource("SpriteFrames_s2sbq")
+frame_progress = 0.649941
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_ksxve")
