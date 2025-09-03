@@ -2,13 +2,17 @@
 
 importer="font_data_dynamic"
 type="FontFile"
+<<<<<<< Updated upstream
 uid="uid://s15272omc2m3"
 path="res://.godot/imported/retro.ttf-6c4eef591b0f083d8dc23ae0fa8c49d9.fontdata"
+=======
+uid="uid://dbbmlg30b2vus"
+valid=false
+>>>>>>> Stashed changes
 
 [deps]
 
 source_file="res://assets/fonts/retro.ttf"
-dest_files=["res://.godot/imported/retro.ttf-6c4eef591b0f083d8dc23ae0fa8c49d9.fontdata"]
 
 [params]
 
