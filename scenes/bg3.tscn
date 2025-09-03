@@ -1,0 +1,40 @@
+[gd_scene load_steps=5 format=3 uid="uid://cv0ejr5he5ce2"]
+
+[ext_resource type="Texture2D" uid="uid://detwlk4hs72ic" path="res://assets/img/Pixel-Art-Battlegrounds/PNG/background 3/Plan 4.png" id="1_2o2nc"]
+[ext_resource type="Texture2D" uid="uid://b4ofqpryobx48" path="res://assets/img/Pixel-Art-Battlegrounds/PNG/background 3/Plan 3.png" id="2_844vk"]
+[ext_resource type="Texture2D" uid="uid://bbf76njj4v7js" path="res://assets/img/Pixel-Art-Battlegrounds/PNG/background 3/Plan 2.png" id="3_f00li"]
+[ext_resource type="Texture2D" uid="uid://cf03hd1tfkf8y" path="res://assets/img/Pixel-Art-Battlegrounds/PNG/background 3/Plan 1.png" id="4_844vk"]
+
+[node name="Bg" type="ParallaxBackground"]
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+scale = Vector2(2, 2)
+texture = ExtResource("1_2o2nc")
+centered = false
+
+[node name="ParallaxLayer" type="ParallaxLayer" parent="."]
+motion_scale = Vector2(0.6, 1)
+motion_mirroring = Vector2(1152, 0)
+
+[node name="Sprite2D" type="Sprite2D" parent="ParallaxLayer"]
+position = Vector2(0, -1)
+scale = Vector2(2, 2.00309)
+texture = ExtResource("2_844vk")
+centered = false
+
+[node name="ParallaxLayer3" type="ParallaxLayer" parent="."]
+motion_scale = Vector2(0.7, 1.167)
+motion_mirroring = Vector2(1152, 0)
+
+[node name="Sprite2D" type="Sprite2D" parent="ParallaxLayer3"]
+position = Vector2(0, -1)
+scale = Vector2(2, 1.78704)
+texture = ExtResource("3_f00li")
+centered = false
+
+[node name="Sprite2D2" type="Sprite2D" parent="."]
+visible = false
+position = Vector2(5.96046e-08, 211)
+scale = Vector2(4.00521, 1.34877)
+texture = ExtResource("4_844vk")
+centered = false

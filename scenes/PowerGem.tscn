@@ -1,0 +1,58 @@
+[gd_scene load_steps=11 format=3 uid="uid://cichbrbnmsofm"]
+
+[ext_resource type="Script" uid="uid://cq8f27j8kjykj" path="res://scenes/PowerGem.gd" id="1_powergem"]
+[ext_resource type="Texture2D" uid="uid://brjovc0e076v8" path="res://Super Pixel Objects Sample/outline_light/gem_large/frame0000.png" id="2_gem0"]
+[ext_resource type="Texture2D" uid="uid://dekcxonyshvmk" path="res://Super Pixel Objects Sample/outline_light/gem_large/frame0001.png" id="3_gem1"]
+[ext_resource type="Texture2D" uid="uid://34doflsw381r" path="res://Super Pixel Objects Sample/outline_light/gem_large/frame0002.png" id="4_gem2"]
+[ext_resource type="Texture2D" uid="uid://bsh7bql42pe7j" path="res://Super Pixel Objects Sample/outline_light/gem_large/frame0003.png" id="5_gem3"]
+[ext_resource type="Texture2D" uid="uid://dfojnj8s4dwa1" path="res://Super Pixel Objects Sample/outline_light/gem_large/frame0004.png" id="6_gem4"]
+[ext_resource type="Texture2D" uid="uid://chkbddhql0p0r" path="res://Super Pixel Objects Sample/outline_light/gem_large/frame0005.png" id="7_gem5"]
+[ext_resource type="Texture2D" uid="uid://66pjcxl34jgd" path="res://Super Pixel Objects Sample/outline_light/gem_large/frame0006.png" id="8_gem6"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_gem"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_gem0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_gem1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_gem2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_gem3")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_gem4")
+}, {
+"duration": 1.0,
+"texture": ExtResource("7_gem5")
+}, {
+"duration": 1.0,
+"texture": ExtResource("8_gem6")
+}],
+"loop": true,
+"name": &"spin",
+"speed": 14.0
+}]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_gem"]
+size = Vector2(63.5, 57.625)
+
+[node name="PowerGem" type="Area2D"]
+script = ExtResource("1_powergem")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+scale = Vector2(2, 2)
+sprite_frames = SubResource("SpriteFrames_gem")
+animation = &"spin"
+autoplay = "spin"
+frame_progress = 0.441363
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -0.8125)
+shape = SubResource("RectangleShape2D_gem")
+
+[connection signal="body_entered" from="." to="." method="_on_body_entered"]

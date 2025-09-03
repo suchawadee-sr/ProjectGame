@@ -6,8 +6,22 @@ var rock_scene   = preload("res://scenes/rock.tscn")
 var barrel_scene = preload("res://scenes/barrel.tscn")
 var bird_scene   = preload("res://scenes/bird.tscn")
 var coin_scene   = preload("res://scenes/Coin.tscn")
+var explosion_scene = preload("res://scenes/Explosion.tscn")
+var game_over_scene = preload("res://scenes/GameOver.tscn")
+
+# Background transition system
+@onready var bg2_scene = preload("res://scenes/bg2.tscn")
+@onready var ground2_scene = preload("res://scenes/ground2.tscn")
+@onready var bg3_scene = preload("res://scenes/bg3.tscn")
+@onready var ground3_scene = preload("res://scenes/ground3.tscn")
+@onready var bg4_scene = preload("res://scenes/bg4.tscn")
+@onready var ground4_scene = preload("res://scenes/ground4.tscn")
 var obstacle_types := [stump_scene, rock_scene, barrel_scene]
 var bird_heights: Array[int] = [200, 390]
+var current_bg_stage: int = 1
+var bg_transition_scores: Array[int] = [2500, 5000, 7500]  # Scores for stage 2, 3, 4
+var bg_transitions_completed: Array[bool] = [false, false, false]  # For stages 2, 3, 4
+var is_transitioning: bool = false
 
 # ====== GAME VARS ======
 const DINO_START_POS := Vector2i(150, 485)
@@ -29,6 +43,9 @@ var difficulty: int
 const MAX_DIFFICULTY: int = 2
 
 var game_running: bool
+
+# ====== BACKGROUND SYSTEM ======
+# Background transition variables moved to top section
 
 # ====== ITEMS (เหรียญ) ======
 @onready var items := $Items
@@ -81,6 +98,8 @@ var near_miss_count: int = 0
 var obstacles_destroyed: int = 0
 var max_combo_run: int = 0
 var run_start_time: float = 0.0
+var distance_traveled: float = 0.0
+var game_time: float = 0.0
 
 # best (เฉพาะในเซสชัน)
 var best_coins: int = 0
@@ -89,6 +108,9 @@ var best_time: float = 0.0
 var best_destroyed: int = 0
 
 const PX_PER_METER: float = 10.0  # ปรับตามสเกลฉาก
+
+# GameOver UI
+var game_over_ui: Control
 
 # ====== RNG ======
 var rng := RandomNumberGenerator.new()
@@ -140,12 +162,23 @@ const PERFECT_DODGE_POINTS: int = 10
 # ---------------------------------------------------------
 func _ready() -> void:
 	screen_size   = get_window().size
-	ground_height = $Ground.get_node("Sprite2D").texture.get_height()
+	var ground_node = get_node_or_null("Ground")
+	if ground_node:
+		var sprite = ground_node.get_node_or_null("Sprite2D")
+		if sprite and sprite.texture:
+			ground_height = sprite.texture.get_height()
+		else:
+			ground_height = 100  # fallback value
 
-	# ให้ UI กดได้ตอน paused
-	$GameOver.process_mode = Node.PROCESS_MODE_WHEN_PAUSED
-	$GameOver.get_node("Button").process_mode = Node.PROCESS_MODE_WHEN_PAUSED
-	$GameOver.get_node("Button").pressed.connect(_on_restart_pressed)
+	# Setup GameOver UI with CanvasLayer
+	var canvas_layer = CanvasLayer.new()
+	canvas_layer.layer = 100
+	canvas_layer.process_mode = Node.PROCESS_MODE_WHEN_PAUSED
+	add_child(canvas_layer)
+	
+	game_over_ui = game_over_scene.instantiate()
+	canvas_layer.add_child(game_over_ui)
+	game_over_ui.process_mode = Node.PROCESS_MODE_WHEN_PAUSED
 
 	# ตั้ง Shader หมอก
 	if fog_mat:
@@ -185,7 +218,16 @@ func new_game() -> void:
 	near_miss_count = 0
 	combo_count = 0
 	max_combo_run = 0
+	coins_collected = 0
+	obstacles_destroyed = 0
+	distance_traveled = 0.0
+	game_time = 0.0
 	run_start_time = _now_sec()
+	
+	# Reset background transition system
+	current_bg_stage = 1
+	bg_transitions_completed = [false, false, false]
+	
 	_update_stats_hud()
 
 	# obstacles
@@ -196,7 +238,17 @@ func new_game() -> void:
 	$Dino.position = DINO_START_POS
 	$Dino.velocity = Vector2.ZERO
 	$Camera2D.position = CAM_START_POS
-	$Ground.position = Vector2i(0, 0)
+	
+	# Reset ground position for any existing ground node
+	var ground_node = get_node_or_null("Ground")
+	if not ground_node:
+		ground_node = get_node_or_null("Ground2")
+	if not ground_node:
+		ground_node = get_node_or_null("Ground3")
+	if not ground_node:
+		ground_node = get_node_or_null("Ground4")
+	if ground_node:
+		ground_node.position = Vector2i(0, 0)
 
 	# Reset shake
 	original_cam_pos = $Camera2D.position
@@ -206,7 +258,8 @@ func new_game() -> void:
 
 	# HUD
 	_hud.get_node("StartLabel").show()
-	$GameOver.hide()
+	if game_over_ui:
+		game_over_ui.hide_game_over()
 
 	# HUD Invincible
 	_ensure_inv_hud()
@@ -234,6 +287,8 @@ func new_game() -> void:
 		fog_mat.set_shader_parameter("fog_color", Color(0,0,0, FOG_ALPHA_MAX))
 		fog_mat.set_shader_parameter("radius_px", FOG_RADIUS_MAX)
 		fog_mat.set_shader_parameter("center_px", _world_to_screen($Dino.global_position))
+
+	# Background stage reset is handled in the counters section above
 
 	dust_timer = 0.0
 
@@ -275,6 +330,13 @@ func _process(delta: float) -> void:
 		# HUD stats refresh
 		_update_stats_hud()
 
+		# Background transition check
+		_check_background_transition()
+
+		# Update game statistics
+		game_time = _now_sec() - run_start_time
+		distance_traveled = $Camera2D.position.x / PX_PER_METER
+
 		# Particles & combo
 		_update_dust_particles(delta)
 		_update_combo_system(delta)
@@ -294,9 +356,16 @@ func _process(delta: float) -> void:
 				_fog_restore_after_invincible()
 				_update_inv_ui(0.0)
 
-		# ground loop
-		if $Camera2D.position.x - $Ground.position.x > screen_size.x * 1.5:
-			$Ground.position.x += screen_size.x
+		# ground loop - check all possible ground nodes
+		var ground_node = get_node_or_null("Ground")
+		if not ground_node:
+			ground_node = get_node_or_null("Ground2")
+		if not ground_node:
+			ground_node = get_node_or_null("Ground3")
+		if not ground_node:
+			ground_node = get_node_or_null("Ground4")
+		if ground_node and $Camera2D.position.x - ground_node.position.x > screen_size.x * 1.5:
+			ground_node.position.x += screen_size.x
 
 		# cull old obstacles
 		for obs in obstacles:
@@ -625,6 +694,7 @@ func generate_obs() -> void:
 
 func add_obs(obs, x: int, y: int) -> void:
 	obs.position = Vector2i(x, y)
+	obs.z_index = 100  # ให้สิ่งกีดขวางอยู่ข้างหน้าสุด
 	obs.body_entered.connect(hit_obs.bind(obs))
 	add_child(obs)
 	obstacles.append(obs)
@@ -644,6 +714,8 @@ func hit_obs(body, obs):
 		_last_hit_time = now
 		add_score_points(HIT_REWARD_POINTS, obs.global_position)
 		shake_screen(8.0, 0.3)
+		_create_explosion("small", obs.global_position, 1.5)
+		obstacles_destroyed += 1
 		remove_obs(obs)
 	else:
 		shake_screen(15.0, 0.5)
@@ -661,6 +733,7 @@ func show_score() -> void:
 func check_high_score() -> void:
 	if score > high_score:
 		high_score = int(score)
+		save_best_score(high_score)
 		if _lb_high: _lb_high.text = "HIGH SCORE: " + str(high_score / SCORE_MODIFIER)
 
 
@@ -673,8 +746,23 @@ func game_over() -> void:
 	check_high_score()
 	get_tree().paused = true
 	game_running = false
-	$GameOver.show()
-	$GameOver.get_node("Button").grab_focus()
+	if game_over_ui:
+		# Prepare game data for GameOver UI
+		var game_data = {
+			"score": int(score / SCORE_MODIFIER),
+			"coins": coins_collected,
+			"distance": int(distance_traveled),
+			"time": game_time,
+			"best_score": int(high_score / SCORE_MODIFIER)
+		}
+		
+		# Show GameOver UI with data
+		game_over_ui.show_game_over(game_data)
+		var button = game_over_ui.get_node_or_null("RestartButton")
+		if not button:
+			button = game_over_ui.get_node_or_null("Button")
+		if button:
+			button.grab_focus()
 
 
 # ---------------------------------------------------------
@@ -700,6 +788,7 @@ func _spawn_next_coin() -> void:
 
 	var c = coin_scene.instantiate()
 	c.global_position = Vector2(x, y)
+	c.z_index = 100  # ให้เหรียญอยู่ข้างหน้าสุด
 
 	# connect signal "collected" ถ้ามี
 	if c.has_signal("collected"):
@@ -864,12 +953,17 @@ func _score_multiplier() -> float:
 	return 1.0
 
 
-func add_score_points(points: int, world_pos: Vector2 = Vector2.ZERO, use_multiplier: bool = true) -> void:
+func add_score_points(points: int, world_pos: Vector2 = Vector2.ZERO, use_multiplier: bool = true, is_coin: bool = false) -> void:
 	var p := points
 	if use_multiplier:
 		p = int(round(points * _score_multiplier()))
 	score += p * SCORE_MODIFIER
 	show_score()
+	
+	# Count coins collected
+	if is_coin:
+		coins_collected += 1
+	
 	if world_pos != Vector2.ZERO:
 		_spawn_floating_text(world_pos, "+" + str(p))
 
@@ -956,3 +1050,229 @@ func _fog_restore_after_invincible() -> void:
 		target_radius,
 		1.0
 	)
+
+
+# ----- Background Transition System -----
+func _check_background_transition() -> void:
+	if is_transitioning:
+		return
+		
+	var display_score: int = int(score / SCORE_MODIFIER)
+	
+	for i in range(bg_transition_scores.size()):
+		var target_stage = i + 2
+		var required_score = bg_transition_scores[i]
+		
+		if display_score >= required_score and current_bg_stage == target_stage - 1 and not bg_transitions_completed[i]:
+			is_transitioning = true
+			match target_stage:
+				2:
+					_transition_to_stage(2, "STAGE 2!")
+				3:
+					_transition_to_stage(3, "STAGE 3!")
+				4:
+					_transition_to_stage(4, "STAGE 4!")
+			
+			bg_transitions_completed[i] = true
+			current_bg_stage = target_stage
+			print("Background transitioned to stage ", target_stage, " at score: ", display_score)
+			break
+
+func _transition_to_stage(stage: int, stage_text: String) -> void:
+	print("=== STAGE TRANSITION DEBUG ===")
+	print("Transitioning to stage: ", stage)
+	print("Current dino position: ", $Dino.global_position)
+	
+	# Create fade in effect first
+	_create_fade_in_effect()
+	
+	# Wait for fade in to complete, then change background
+	await get_tree().create_timer(0.8).timeout
+	
+	print("Before removing current bg/ground:")
+	print("- Current ground nodes in scene:")
+	for child in get_children():
+		if "Ground" in child.name:
+			if child.has_method("get_position"):
+				print("  - ", child.name, " at position: ", child.get_position())
+			else:
+				print("  - ", child.name, " (no position property)")
+	
+	# Remove current background and ground
+	_remove_current_bg_ground()
+	
+	print("After removing current bg/ground")
+	
+	# Add new background and ground based on stage
+	var new_bg: Node
+	var new_ground: Node
+	var bg_name: String
+	var ground_name: String
+	
+	match stage:
+		2:
+			new_bg = bg2_scene.instantiate()
+			new_ground = ground2_scene.instantiate()
+			bg_name = "Bg2"
+			ground_name = "Ground2"
+		3:
+			new_bg = bg3_scene.instantiate()
+			new_ground = ground3_scene.instantiate()
+			bg_name = "Bg3"
+			ground_name = "Ground3"
+		4:
+			new_bg = bg4_scene.instantiate()
+			new_ground = ground4_scene.instantiate()
+			bg_name = "Bg4"
+			ground_name = "Ground4"
+	
+	# Add them at the correct positions in scene tree
+	add_child(new_bg)
+	move_child(new_bg, 0)  	# Position new nodes at camera position
+	
+	# Only set position if it's not a ParallaxBackground
+	if new_bg.get_class() != "ParallaxBackground":
+		new_bg.position.x = $Camera2D.position.x - screen_size.x / 2
+	new_ground.position.x = $Camera2D.position.x - screen_size.x / 2
+	
+	print("Adding new bg/ground:")
+	print("- New bg type: ", new_bg.get_class())
+	print("- New ground type: ", new_ground.get_class())
+	
+	# Add to scene
+	add_child(new_ground)
+	new_bg.name = bg_name
+	new_ground.name = ground_name
+	
+	print("After adding new bg/ground:")
+	print("- ", bg_name, " added (type: ", new_bg.get_class(), ")")
+	print("- ", ground_name, " added (type: ", new_ground.get_class(), ")")
+	print("- Dino position after transition: ", $Dino.global_position)
+	
+	# Check ground collision shape
+	var collision_shape = new_ground.get_node("CollisionShape2D")
+	if collision_shape:
+		print("- Ground collision position: ", collision_shape.position)
+		print("- Ground collision shape size: ", collision_shape.shape.size)
+	
+	# Show stage transition text
+	_show_stage_text(stage_text)
+	
+	# Create fade out effect
+	_create_fade_out_effect()
+	
+	print("=== END STAGE TRANSITION DEBUG ===\n")
+	
+	# Unlock transitions
+	is_transitioning = false
+
+func _show_stage_text(stage_text: String) -> void:
+	# Create a label to show stage transition text
+	var stage_label = Label.new()
+	stage_label.text = stage_text
+	stage_label.add_theme_font_size_override("font_size", 48)
+	stage_label.add_theme_color_override("font_color", Color.WHITE)
+	stage_label.position = Vector2(screen_size.x / 2 - 100, screen_size.y / 2)
+	stage_label.z_index = 1000
+	
+	# Add to HUD
+	_hud.add_child(stage_label)
+	
+	# Animate the text
+	var tween = create_tween()
+	tween.parallel().tween_property(stage_label, "modulate:a", 0.0, 2.0)
+	tween.tween_callback(stage_label.queue_free)
+
+func _remove_current_bg_ground() -> void:
+	# Remove any existing background and ground nodes immediately
+	var nodes_to_remove = []
+	for child in get_children():
+		if child.name.begins_with("Bg") or child.name.begins_with("Ground"):
+			print("- Removing node: ", child.name, " (type: ", child.get_class(), ")")
+			nodes_to_remove.append(child)
+	
+	for node in nodes_to_remove:
+		remove_child(node)
+		node.queue_free()
+
+func _create_fade_in_effect() -> void:
+	# Fade to black (preparing for transition)
+	var fade_rect = ColorRect.new()
+	fade_rect.color = Color.BLACK
+	fade_rect.size = Vector2(screen_size)
+	fade_rect.position = Vector2.ZERO
+	fade_rect.modulate.a = 0.0
+	fade_rect.name = "TransitionFade"
+	_hud.add_child(fade_rect)
+	
+	var tween = create_tween()
+	tween.tween_property(fade_rect, "modulate:a", 1.0, 0.8)
+
+func _create_fade_out_effect() -> void:
+	# Fade from black (after transition)
+	var fade_rect = _hud.get_node_or_null("TransitionFade")
+	if fade_rect:
+		var tween = create_tween()
+		tween.tween_property(fade_rect, "modulate:a", 0.0, 0.8)
+		tween.tween_callback(fade_rect.queue_free)
+
+func _create_other_transition_effects(stage_text: String) -> void:
+	# Screen shake for dramatic effect
+	shake_screen(12.0, 1.2)
+	
+	# Show transition text
+	_spawn_floating_text($Dino.global_position + Vector2(0, -100), stage_text)
+	
+	# Add some sparkle particles for extra effect
+	_create_transition_particles()
+
+func _create_transition_particles() -> void:
+	# Create sparkle effect during transition
+	var sparkle_particles = GPUParticles2D.new()
+	sparkle_particles.name = "TransitionSparkles"
+	sparkle_particles.emitting = true
+	sparkle_particles.amount = 100
+	sparkle_particles.lifetime = 2.0
+	sparkle_particles.position = $Dino.global_position
+	sparkle_particles.process_material = _create_sparkle_material()
+	add_child(sparkle_particles)
+	
+	# Auto-remove after effect
+	await get_tree().create_timer(2.5).timeout
+	if sparkle_particles and is_instance_valid(sparkle_particles):
+		sparkle_particles.queue_free()
+
+func _create_sparkle_material() -> ParticleProcessMaterial:
+	var material = ParticleProcessMaterial.new()
+	material.direction = Vector3(0, -1, 0)
+	material.spread = 360.0
+	material.initial_velocity_min = 50.0
+	material.initial_velocity_max = 150.0
+	material.gravity = Vector3(0, -50, 0)
+	material.scale_min = 0.2
+	material.scale_max = 0.8
+	material.color = Color(1.0, 1.0, 0.2, 0.8)
+	return material
+
+
+# ----- Best Score Management -----
+func load_best_score() -> int:
+	var save_file = FileAccess.open("user://best_score.save", FileAccess.READ)
+	if save_file:
+		var best_score = save_file.get_32()
+		save_file.close()
+		return best_score
+	return 0
+
+func save_best_score(new_high_score: int) -> void:
+	var save_file = FileAccess.open("user://best_score.save", FileAccess.WRITE)
+	if save_file:
+		save_file.store_32(new_high_score)
+		save_file.close()
+		print("High score saved: ", new_high_score)
+
+# ----- Explosion Effects -----
+func _create_explosion(type: String, pos: Vector2, scale_factor: float = 1.0) -> void:
+	var explosion = explosion_scene.instantiate()
+	add_child(explosion)
+	explosion.play_explosion(type, pos, scale_factor)

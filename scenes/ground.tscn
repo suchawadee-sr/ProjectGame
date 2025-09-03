@@ -1,4 +1,4 @@
-[gd_scene load_steps=4 format=3 uid="uid://cui36t063xpf6"]
+[gd_scene load_steps=4 format=3 uid="uid://6quu7226x17h"]
 
 [ext_resource type="Texture2D" uid="uid://cm3nine0akrvl" path="res://assets/img/Pixel-Art-Battlegrounds/PNG/Battleground2/Pale/floor.png" id="1_pybca"]
 [ext_resource type="Texture2D" uid="uid://bf3mj7vgl86d1" path="res://assets/img/Pixel-Art-Battlegrounds/PNG/Battleground2/Pale/candeliar.png" id="2_mi8v4"]
@@ -14,10 +14,6 @@ scale = Vector2(1.19948, 0.319444)
 texture = ExtResource("1_pybca")
 centered = false
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(1154, 599)
-shape = SubResource("RectangleShape2D_te2nw")
-
 [node name="Sprite2D2" type="Sprite2D" parent="."]
 position = Vector2(-1, 22)
 scale = Vector2(0.598958, 0.691667)
@@ -29,3 +25,7 @@ position = Vector2(1145, 22)
 scale = Vector2(0.598958, 0.691667)
 texture = ExtResource("2_mi8v4")
 centered = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(1154, 599)
+shape = SubResource("RectangleShape2D_te2nw")
