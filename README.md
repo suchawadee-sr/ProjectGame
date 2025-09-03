@@ -1,4 +1,4 @@
-#โครงงานเกม PLATFORMER 2D
+โครงงานเกม PLATFORMER 2D
 ---
 
 **วิชา:** Computer Game Development ปี 2025  
