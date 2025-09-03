@@ -1,6 +1,10 @@
-[gd_scene load_steps=2 format=3 uid="uid://lyf4a3sklk1o"]
+[gd_scene load_steps=3 format=3 uid="uid://lyf4a3sklk1o"]
 
-[ext_resource type="FontFile" uid="uid://s15272omc2m3" path="res://assets/fonts/retro.ttf" id="1_xwrdd"]
+[ext_resource type="FontFile" uid="uid://dbbmlg30b2vus" path="res://assets/fonts/retro.ttf" id="1_xwrdd"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_cafb6"]
+font = ExtResource("1_xwrdd")
+font_size = 30
 
 [node name="HUD" type="CanvasLayer"]
 
@@ -43,3 +47,29 @@ theme_override_font_sizes/font_size = 40
 text = "HIGH SCORE: "
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="InvPanel" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 433.0
+offset_top = 541.0
+offset_right = 693.0
+offset_bottom = 567.0
+
+[node name="InvBar" type="ProgressBar" parent="InvPanel"]
+layout_mode = 0
+offset_top = 3.0
+offset_right = 200.0
+offset_bottom = 30.0
+theme_override_fonts/font = ExtResource("1_xwrdd")
+theme_override_font_sizes/font_size = 30
+max_value = 5.0
+
+[node name="InvLabel" type="Label" parent="InvPanel"]
+layout_mode = 0
+offset_left = 208.0
+offset_top = 3.0
+offset_right = 248.0
+offset_bottom = 26.0
+text = "0.0s"
+label_settings = SubResource("LabelSettings_cafb6")

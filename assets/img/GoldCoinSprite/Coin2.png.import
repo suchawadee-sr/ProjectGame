@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cyvvxaauym1st"
-path="res://.godot/imported/rock.png-54e883bb572f3054961b5879a20d487c.ctex"
+uid="uid://c7xg6mpoyahul"
+path="res://.godot/imported/Coin2.png-4e178fcfc70d52e0c988bf8f3ab0c059.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/img/obstacles/rock.png"
-dest_files=["res://.godot/imported/rock.png-54e883bb572f3054961b5879a20d487c.ctex"]
+source_file="res://assets/img/GoldCoinSprite/Coin2.png"
+dest_files=["res://.godot/imported/Coin2.png-4e178fcfc70d52e0c988bf8f3ab0c059.ctex"]
 
 [params]
 
