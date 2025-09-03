@@ -1,0 +1,174 @@
+[gd_scene load_steps=3 format=3 uid="uid://cetjasrpuvdrf"]
+
+[ext_resource type="Script" uid="uid://dnbkbvju7m8p1" path="res://scenes/GameOver.gd" id="1_gameover"]
+[ext_resource type="FontFile" uid="uid://dbbmlg30b2vus" path="res://assets/fonts/retro.ttf" id="2_retro_font"]
+
+[node name="GameOver" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_gameover")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.1, 0.1, 0.15, 0.9)
+
+[node name="MainContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -250.0
+offset_right = 200.0
+offset_bottom = 250.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="GameOverTitle" type="Label" parent="MainContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_retro_font")
+theme_override_font_sizes/font_size = 48
+text = "GAME OVER"
+horizontal_alignment = 1
+
+[node name="Spacer1" type="Control" parent="MainContainer"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+
+[node name="StatsContainer" type="VBoxContainer" parent="MainContainer"]
+layout_mode = 2
+
+[node name="ScoreContainer" type="HBoxContainer" parent="MainContainer/StatsContainer"]
+layout_mode = 2
+
+[node name="ScoreLabel" type="Label" parent="MainContainer/StatsContainer/ScoreContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("2_retro_font")
+theme_override_font_sizes/font_size = 24
+text = "SCORE:"
+
+[node name="ScoreValue" type="Label" parent="MainContainer/StatsContainer/ScoreContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.8, 0, 1)
+theme_override_fonts/font = ExtResource("2_retro_font")
+theme_override_font_sizes/font_size = 24
+text = "0"
+horizontal_alignment = 2
+
+[node name="CoinsContainer" type="HBoxContainer" parent="MainContainer/StatsContainer"]
+layout_mode = 2
+
+[node name="CoinsLabel" type="Label" parent="MainContainer/StatsContainer/CoinsContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("2_retro_font")
+theme_override_font_sizes/font_size = 24
+text = "COINS:"
+
+[node name="CoinsValue" type="Label" parent="MainContainer/StatsContainer/CoinsContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.8, 0, 1)
+theme_override_fonts/font = ExtResource("2_retro_font")
+theme_override_font_sizes/font_size = 24
+text = "0"
+horizontal_alignment = 2
+
+[node name="DistanceContainer" type="HBoxContainer" parent="MainContainer/StatsContainer"]
+layout_mode = 2
+
+[node name="DistanceLabel" type="Label" parent="MainContainer/StatsContainer/DistanceContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("2_retro_font")
+theme_override_font_sizes/font_size = 24
+text = "DISTANCE:"
+
+[node name="DistanceValue" type="Label" parent="MainContainer/StatsContainer/DistanceContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0, 1, 0.5, 1)
+theme_override_fonts/font = ExtResource("2_retro_font")
+theme_override_font_sizes/font_size = 24
+text = "0m"
+horizontal_alignment = 2
+
+[node name="TimeContainer" type="HBoxContainer" parent="MainContainer/StatsContainer"]
+layout_mode = 2
+
+[node name="TimeLabel" type="Label" parent="MainContainer/StatsContainer/TimeContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("2_retro_font")
+theme_override_font_sizes/font_size = 24
+text = "TIME:"
+
+[node name="TimeValue" type="Label" parent="MainContainer/StatsContainer/TimeContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.5, 0.8, 1, 1)
+theme_override_fonts/font = ExtResource("2_retro_font")
+theme_override_font_sizes/font_size = 24
+text = "00:00"
+horizontal_alignment = 2
+
+[node name="BestScoreContainer" type="HBoxContainer" parent="MainContainer/StatsContainer"]
+layout_mode = 2
+
+[node name="BestScoreLabel" type="Label" parent="MainContainer/StatsContainer/BestScoreContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.5, 1, 1)
+theme_override_fonts/font = ExtResource("2_retro_font")
+theme_override_font_sizes/font_size = 20
+text = "HIGH SCORE:"
+
+[node name="BestScoreValue" type="Label" parent="MainContainer/StatsContainer/BestScoreContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.5, 1, 1)
+theme_override_fonts/font = ExtResource("2_retro_font")
+theme_override_font_sizes/font_size = 20
+text = "0"
+horizontal_alignment = 2
+
+[node name="Spacer2" type="Control" parent="MainContainer"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+
+[node name="ButtonsContainer" type="VBoxContainer" parent="MainContainer"]
+layout_mode = 2
+
+[node name="RestartButton" type="Button" parent="MainContainer/ButtonsContainer"]
+custom_minimum_size = Vector2(300, 50)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_retro_font")
+theme_override_font_sizes/font_size = 28
+text = "RESTART"
+
+[node name="Spacer3" type="Control" parent="MainContainer/ButtonsContainer"]
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+
+[node name="MainMenuButton" type="Button" parent="MainContainer/ButtonsContainer"]
+custom_minimum_size = Vector2(300, 50)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_retro_font")
+theme_override_font_sizes/font_size = 28
+text = "MENU"
+
+[connection signal="pressed" from="MainContainer/ButtonsContainer/RestartButton" to="." method="_on_restart_button_pressed"]
+[connection signal="pressed" from="MainContainer/ButtonsContainer/MainMenuButton" to="." method="_on_main_menu_button_pressed"]

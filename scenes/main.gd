@@ -6,6 +6,8 @@ var rock_scene   = preload("res://scenes/rock.tscn")
 var barrel_scene = preload("res://scenes/barrel.tscn")
 var bird_scene   = preload("res://scenes/bird.tscn")
 var coin_scene   = preload("res://scenes/Coin.tscn")
+var explosion_scene = preload("res://scenes/Explosion.tscn")
+var game_over_scene = preload("res://scenes/GameOver.tscn")
 var obstacle_types := [stump_scene, rock_scene, barrel_scene]
 var bird_heights: Array[int] = [200, 390]
 
@@ -50,6 +52,7 @@ var next_obs_spawn_x: int = 0
 var last_spawn_right: float = -1.0e9
 var last_spawn_type: String = ""   # "obs" | "bird" | ""
 
+
 # ====== INVINCIBLE ======
 var invincible: bool = false
 var inv_end_time: float = 0.0
@@ -81,6 +84,9 @@ var near_miss_count: int = 0
 var obstacles_destroyed: int = 0
 var max_combo_run: int = 0
 var run_start_time: float = 0.0
+
+# GameOver UI
+var game_over_ui: Control
 
 # best (เฉพาะในเซสชัน)
 var best_coins: int = 0
@@ -139,820 +145,905 @@ const PERFECT_DODGE_POINTS: int = 10
 # LIFECYCLE
 # ---------------------------------------------------------
 func _ready() -> void:
-	screen_size   = get_window().size
-	ground_height = $Ground.get_node("Sprite2D").texture.get_height()
+    screen_size   = get_window().size
+    var ground_sprite = $Ground.get_node("Sprite2D")
+    ground_height = int(ground_sprite.texture.get_height() * ground_sprite.scale.y)
 
-	# ให้ UI กดได้ตอน paused
-	$GameOver.process_mode = Node.PROCESS_MODE_WHEN_PAUSED
-	$GameOver.get_node("Button").process_mode = Node.PROCESS_MODE_WHEN_PAUSED
-	$GameOver.get_node("Button").pressed.connect(_on_restart_pressed)
+    # Setup GameOver UI with CanvasLayer
+    var canvas_layer = CanvasLayer.new()
+    canvas_layer.layer = 100
+    canvas_layer.process_mode = Node.PROCESS_MODE_WHEN_PAUSED
+    add_child(canvas_layer)
+    
+    game_over_ui = game_over_scene.instantiate()
+    canvas_layer.add_child(game_over_ui)
+    game_over_ui.process_mode = Node.PROCESS_MODE_WHEN_PAUSED
 
-	# ตั้ง Shader หมอก
-	if fog_mat:
-		fog_mat.set_shader_parameter("screen_size", Vector2(screen_size))
-		fog_mat.set_shader_parameter("softness_px", FOG_SOFTNESS)
-		fog_mat.set_shader_parameter("fog_color", Color(0,0,0, FOG_ALPHA_MAX))
-		fog_mat.set_shader_parameter("radius_px", FOG_RADIUS_MAX)
+    # ตั้ง Shader หมอก
+    if fog_mat:
+        fog_mat.set_shader_parameter("screen_size", Vector2(screen_size))
+        fog_mat.set_shader_parameter("softness_px", FOG_SOFTNESS)
+        fog_mat.set_shader_parameter("fog_color", Color(0,0,0, FOG_ALPHA_MAX))
+        fog_mat.set_shader_parameter("radius_px", FOG_RADIUS_MAX)
 
-	_setup_particles()
-	_setup_combo_ui()
-	new_game()
+    _setup_particles()
+    _setup_combo_ui()
+    new_game()
 
 
-func _on_restart_pressed() -> void:
-	get_tree().paused = false
-	new_game()
 
 
 func new_game() -> void:
-	rng.randomize()
+    rng.randomize()
 
-	# stop fog tweens
-	if _fog_tween and is_instance_valid(_fog_tween): _fog_tween.kill()
-	if _fog_radius_tween and is_instance_valid(_fog_radius_tween): _fog_radius_tween.kill()
+    # stop fog tweens
+    if _fog_tween and is_instance_valid(_fog_tween): _fog_tween.kill()
+    if _fog_radius_tween and is_instance_valid(_fog_radius_tween): _fog_radius_tween.kill()
 
-	# core
-	score = 0.0
-	show_score()
-	game_running = false
-	get_tree().paused = false
-	difficulty = 0
-	invincible = false
-	next_invincible_score = 500
-	_set_glow(false)
+    # core
+    score = 0.0
+    show_score()
+    game_running = false
+    get_tree().paused = false
+    difficulty = 0
+    invincible = false
+    next_invincible_score = 500
+    _set_glow(false)
 
-	# counters
-	near_miss_count = 0
-	combo_count = 0
-	max_combo_run = 0
-	run_start_time = _now_sec()
-	_update_stats_hud()
+    # counters
+    near_miss_count = 0
+    combo_count = 0
+    max_combo_run = 0
+    coins_collected = 0
+    run_start_time = _now_sec()
 
-	# obstacles
-	for obs in obstacles: obs.queue_free()
-	obstacles.clear()
+    # obstacles
+    for obs in obstacles: obs.queue_free()
+    obstacles.clear()
 
-	# reset nodes
-	$Dino.position = DINO_START_POS
-	$Dino.velocity = Vector2.ZERO
-	$Camera2D.position = CAM_START_POS
-	$Ground.position = Vector2i(0, 0)
+    # spacing refs
+    last_spawn_right = float($Camera2D.position.x) - 2000.0
+    last_spawn_type  = ""
+    next_obs_spawn_x = int($Camera2D.position.x) + screen_size.x + 100
+    
+    _update_stats_hud()
 
-	# Reset shake
-	original_cam_pos = $Camera2D.position
-	shake_strength = 0.0
-	shake_duration = 0.0
-	shake_timer = 0.0
+    # reset nodes
+    $Dino.position = DINO_START_POS
+    $Dino.velocity = Vector2.ZERO
+    $Camera2D.position = CAM_START_POS
+    $Ground.position = Vector2i(0, 0)
 
-	# HUD
-	_hud.get_node("StartLabel").show()
-	$GameOver.hide()
+    # Reset shake
+    original_cam_pos = $Camera2D.position
+    shake_strength = 0.0
+    shake_duration = 0.0
+    shake_timer = 0.0
 
-	# HUD Invincible
-	_ensure_inv_hud()
-	inv_panel.hide()
-	inv_bar.min_value = 0.0
-	inv_bar.max_value = INVINCIBLE_DURATION
-	inv_bar.value     = 0.0
-	inv_label.text    = "0.0s"
+    # HUD
+    _hud.get_node("StartLabel").show()
+    if game_over_ui:
+        game_over_ui.hide_game_over()
 
-	# coins
-	for n in items.get_children(): n.queue_free()
+    # HUD Invincible
+    _ensure_inv_hud()
+    inv_panel.hide()
+    inv_bar.min_value = 0.0
+    inv_bar.max_value = INVINCIBLE_DURATION
+    inv_bar.value     = 0.0
+    inv_label.text    = "0.0s"
 
-	# spacing refs
-	last_spawn_right = float($Camera2D.position.x) - 2000.0
-	last_spawn_type  = ""
-	next_obs_spawn_x = int($Camera2D.position.x) + screen_size.x + 100
+    # coins
+    for n in items.get_children(): n.queue_free()
 
-	# coin first
-	next_coin_x = float($Camera2D.position.x) + float(screen_size.x) * 0.75
-	_spawn_next_coin()
+    # spacing refs
+    last_spawn_right = float($Camera2D.position.x) - 2000.0
+    last_spawn_type  = ""
+    next_obs_spawn_x = int($Camera2D.position.x) + screen_size.x + 100
 
-	# reset fog (เผื่อรอบก่อนเป็นอมตะ)
-	if fog_mat:
-		_fog_hidden_by_inv = false
-		fog_mat.set_shader_parameter("fog_color", Color(0,0,0, FOG_ALPHA_MAX))
-		fog_mat.set_shader_parameter("radius_px", FOG_RADIUS_MAX)
-		fog_mat.set_shader_parameter("center_px", _world_to_screen($Dino.global_position))
+    # coin first
+    next_coin_x = float($Camera2D.position.x) + float(screen_size.x) * 0.75
+    _spawn_next_coin()
 
-	dust_timer = 0.0
+    # reset fog (เผื่อรอบก่อนเป็นอมตะ)
+    if fog_mat:
+        _fog_hidden_by_inv = false
+        fog_mat.set_shader_parameter("fog_color", Color(0,0,0, FOG_ALPHA_MAX))
+        fog_mat.set_shader_parameter("radius_px", FOG_RADIUS_MAX)
+        fog_mat.set_shader_parameter("center_px", _world_to_screen($Dino.global_position))
+
+    dust_timer = 0.0
 
 
 # ---------------------------------------------------------
 # PER-FRAME
 # ---------------------------------------------------------
 func _process(delta: float) -> void:
-	# Fog follow center and auto radius when not tweening
-	if fog_mat and not _fog_hidden_by_inv:
-		var c: Vector2 = _world_to_screen($Dino.global_position)
-		fog_mat.set_shader_parameter("center_px", c)
-		if _fog_radius_tween == null or not is_instance_valid(_fog_radius_tween) or not _fog_radius_tween.is_running():
-			var display_score: int = int(score / SCORE_MODIFIER)
-			var t: float = clamp(float(display_score) / float(FOG_SCORE_FULL), 0.0, 1.0)
-			var radius: float = lerp(FOG_RADIUS_MAX, FOG_RADIUS_MIN, t)
-			fog_mat.set_shader_parameter("radius_px", radius)
+    # Fog follow center and auto radius when not tweening
+    if fog_mat and not _fog_hidden_by_inv:
+        var c: Vector2 = _world_to_screen($Dino.global_position)
+        fog_mat.set_shader_parameter("center_px", c)
+        if _fog_radius_tween == null or not is_instance_valid(_fog_radius_tween) or not _fog_radius_tween.is_running():
+            var display_score: int = int(score / SCORE_MODIFIER)
+            var t: float = clamp(float(display_score) / float(FOG_SCORE_FULL), 0.0, 1.0)
+            var radius: float = lerp(FOG_RADIUS_MAX, FOG_RADIUS_MIN, t)
+            fog_mat.set_shader_parameter("radius_px", radius)
 
-	_update_screen_shake(delta)
+    _update_screen_shake(delta)
 
-	if game_running:
-		# speed & difficulty
-		speed = START_SPEED + float(score) / float(SPEED_MODIFIER)
-		if speed > MAX_SPEED: speed = MAX_SPEED
-		adjust_difficulty()
+    if game_running:
+        # speed & difficulty
+        speed = START_SPEED + float(score) / float(SPEED_MODIFIER)
+        if speed > MAX_SPEED: speed = MAX_SPEED
+            
+        adjust_difficulty()
 
-		# obstacles
-		generate_obs()
+        # obstacles
+        generate_obs()
 
-		# move
-		$Dino.position.x     += speed * delta
-		$Camera2D.position.x += speed * delta
-		original_cam_pos.x   += speed * delta
+        # move
+        $Dino.position.x     += speed * delta
+        $Camera2D.position.x += speed * delta
+        original_cam_pos.x   += speed * delta
 
-		# scoring (ระยะทาง/เวลา)
-		score += speed * delta
-		show_score()
+        # scoring (ระยะทาง/เวลา)
+        score += speed * delta
+        show_score()
 
-		# HUD stats refresh
-		_update_stats_hud()
+        # HUD stats refresh
+        _update_stats_hud()
 
-		# Particles & combo
-		_update_dust_particles(delta)
-		_update_combo_system(delta)
+        # Particles & combo
+        _update_dust_particles(delta)
+        _update_combo_system(delta)
 
-		# trigger invincible (+500 display score)
-		if int(score / SCORE_MODIFIER) >= next_invincible_score:
-			next_invincible_score += 500
-			_start_invincible(INVINCIBLE_DURATION)
+        # trigger invincible (+500 display score)
+        if int(score / SCORE_MODIFIER) >= next_invincible_score:
+            next_invincible_score += 500
+            _start_invincible(INVINCIBLE_DURATION)
 
-		# invincible countdown
-		if invincible:
-			var remaining: float = clamp(inv_end_time - _now_sec(), 0.0, INVINCIBLE_DURATION)
-			_update_inv_ui(remaining)
-			if remaining <= 0.0:
-				invincible = false
-				_set_glow(false)
-				_fog_restore_after_invincible()
-				_update_inv_ui(0.0)
+        # invincible countdown
+        if invincible:
+            var remaining: float = clamp(inv_end_time - _now_sec(), 0.0, INVINCIBLE_DURATION)
+            _update_inv_ui(remaining)
+            if remaining <= 0.0:
+                invincible = false
+                _set_glow(false)
+                _fog_restore_after_invincible()
+                _update_inv_ui(0.0)
 
-		# ground loop
-		if $Camera2D.position.x - $Ground.position.x > screen_size.x * 1.5:
-			$Ground.position.x += screen_size.x
+        # ground loop
+        if $Camera2D.position.x - $Ground.position.x > screen_size.x * 1.5:
+            $Ground.position.x += screen_size.x
 
-		# cull old obstacles
-		for obs in obstacles:
-			if obs.position.x < ($Camera2D.position.x - screen_size.x):
-				remove_obs(obs)
+        # cull old obstacles
+        for obs in obstacles:
+            if obs.position.x < ($Camera2D.position.x - screen_size.x):
+                remove_obs(obs)
 
-		# coin spawn 1-by-1
-		if float($Camera2D.position.x) >= next_coin_x:
-			_spawn_next_coin()
+        # coin spawn 1-by-1
+        if float($Camera2D.position.x) >= next_coin_x:
+            _spawn_next_coin()
 
-		# cull coins behind
-		for n in items.get_children():
-			if n.global_position.x < ($Camera2D.position.x - screen_size.x):
-				n.queue_free()
-	else:
-		if Input.is_action_pressed("ui_accept"):
-			game_running = true
-			_hud.get_node("StartLabel").hide()
+        # cull coins behind
+        for n in items.get_children():
+            if n.global_position.x < ($Camera2D.position.x - screen_size.x):
+                n.queue_free()
+    else:
+        if Input.is_action_pressed("ui_accept"):
+            game_running = true
+            _hud.get_node("StartLabel").hide()
 
 
 # ---------------------------------------------------------
 # NEW FEATURE 1: SCREEN SHAKE SYSTEM
 # ---------------------------------------------------------
 func _update_screen_shake(delta: float) -> void:
-	if shake_duration <= 0.0:
-		return
+    if shake_duration <= 0.0:
+        return
 
-	shake_timer -= delta
-	shake_duration -= delta
+    shake_timer -= delta
+    shake_duration -= delta
 
-	if shake_duration <= 0.0:
-		$Camera2D.position = original_cam_pos
-		shake_strength = 0.0
-		return
+    if shake_duration <= 0.0:
+        $Camera2D.position = original_cam_pos
+        shake_strength = 0.0
+        return
 
-	var shake_offset := Vector2(
-		randf_range(-shake_strength, shake_strength),
-		randf_range(-shake_strength, shake_strength)
-	)
-	$Camera2D.position = original_cam_pos + shake_offset
+    var shake_offset := Vector2(
+        randf_range(-shake_strength, shake_strength),
+        randf_range(-shake_strength, shake_strength)
+    )
+    $Camera2D.position = original_cam_pos + shake_offset
 
 
 func shake_screen(strength: float, duration: float) -> void:
-	shake_strength = strength
-	shake_duration = duration
-	shake_timer = duration
+    shake_strength = strength
+    shake_duration = duration
+    shake_timer = duration
 
 
 # ---------------------------------------------------------
 # NEW FEATURE 2: PARTICLE SYSTEM
 # ---------------------------------------------------------
 func _setup_particles() -> void:
-	# Dust particles
-	dust_particles = GPUParticles2D.new()
-	dust_particles.name = "DustParticles"
-	dust_particles.emitting = false
-	dust_particles.amount = 50
-	dust_particles.lifetime = 1.0
-	dust_particles.process_material = _create_dust_material()
-	add_child(dust_particles)
+    # Dust particles
+    dust_particles = GPUParticles2D.new()
+    dust_particles.name = "DustParticles"
+    dust_particles.emitting = false
+    dust_particles.amount = 50
+    dust_particles.lifetime = 1.0
+    dust_particles.process_material = _create_dust_material()
+    add_child(dust_particles)
 
-	# Coin collect particles
-	coin_particles = GPUParticles2D.new()
-	coin_particles.name = "CoinParticles"
-	coin_particles.emitting = false
-	coin_particles.amount = 20
-	coin_particles.lifetime = 0.8
-	coin_particles.process_material = _create_coin_material()
-	add_child(coin_particles)
+    # Coin collect particles
+    coin_particles = GPUParticles2D.new()
+    coin_particles.name = "CoinParticles"
+    coin_particles.emitting = false
+    coin_particles.amount = 20
+    coin_particles.lifetime = 0.8
+    coin_particles.process_material = _create_coin_material()
+    add_child(coin_particles)
 
 
 func _create_dust_material() -> ParticleProcessMaterial:
-	var material = ParticleProcessMaterial.new()
-	material.direction = Vector3(0, -1, 0)
-	material.initial_velocity_min = 30.0
-	material.initial_velocity_max = 60.0
-	material.angular_velocity_min = -180.0
-	material.angular_velocity_max = 180.0
-	material.gravity = Vector3(0, 98, 0)
-	material.scale_min = 0.3
-	material.scale_max = 0.7
-	material.color = Color(0.8, 0.6, 0.4, 0.7)
-	return material
+    var material = ParticleProcessMaterial.new()
+    material.direction = Vector3(0, -1, 0)
+    material.initial_velocity_min = 30.0
+    material.initial_velocity_max = 60.0
+    material.angular_velocity_min = -180.0
+    material.angular_velocity_max = 180.0
+    material.gravity = Vector3(0, 98, 0)
+    material.scale_min = 0.3
+    material.scale_max = 0.7
+    material.color = Color(0.8, 0.6, 0.4, 0.7)
+    return material
 
 
 func _create_coin_material() -> ParticleProcessMaterial:
-	var material = ParticleProcessMaterial.new()
-	material.direction = Vector3(0, -1, 0)
-	material.spread = 45.0
-	material.initial_velocity_min = 80.0
-	material.initial_velocity_max = 150.0
-	material.gravity = Vector3(0, 150, 0)
-	material.scale_min = 0.5
-	material.scale_max = 1.2
-	material.color = Color(1.0, 0.8, 0.2, 0.9)
-	return material
+    var material = ParticleProcessMaterial.new()
+    material.direction = Vector3(0, -1, 0)
+    material.spread = 45.0
+    material.initial_velocity_min = 80.0
+    material.initial_velocity_max = 150.0
+    material.gravity = Vector3(0, 150, 0)
+    material.scale_min = 0.5
+    material.scale_max = 1.2
+    material.color = Color(1.0, 0.8, 0.2, 0.9)
+    return material
 
 
 func _update_dust_particles(delta: float) -> void:
-	dust_timer += delta
-	if dust_timer >= DUST_INTERVAL:
-		dust_timer = 0.0
-		dust_particles.position = $Dino.position + Vector2(0, 20)
-		dust_particles.restart()
-		dust_particles.emitting = true
-		await get_tree().create_timer(0.1)
-		if dust_particles:
-			dust_particles.emitting = false
+    dust_timer += delta
+    if dust_timer >= DUST_INTERVAL:
+        dust_timer = 0.0
+        dust_particles.position = $Dino.position + Vector2(0, 20)
+        dust_particles.restart()
+        dust_particles.emitting = true
+        await get_tree().create_timer(0.1)
+        if dust_particles:
+            dust_particles.emitting = false
 
 
 func _play_coin_particle(coin_pos: Vector2) -> void:
-	coin_particles.position = coin_pos
-	coin_particles.restart()
-	coin_particles.emitting = true
-	await get_tree().create_timer(0.1)
-	if coin_particles:
-		coin_particles.emitting = false
+    coin_particles.position = coin_pos
+    coin_particles.restart()
+    coin_particles.emitting = true
+    await get_tree().create_timer(0.1)
+    if coin_particles:
+        coin_particles.emitting = false
 
 
 # ---------------------------------------------------------
 # NEW FEATURE 3: COMBO + PERFECT DODGE
 # ---------------------------------------------------------
 func _setup_combo_ui() -> void:
-	combo_label = Label.new()
-	combo_label.name = "ComboLabel"
-	combo_label.add_theme_font_size_override("font_size", 36)
-	combo_label.add_theme_color_override("font_color", Color.YELLOW)
-	combo_label.add_theme_color_override("font_shadow_color", Color.BLACK)
-	combo_label.add_theme_constant_override("shadow_offset_x", 2)
-	combo_label.add_theme_constant_override("shadow_offset_y", 2)
-	combo_label.position = Vector2(screen_size.x - 250, 100)
-	combo_label.visible = false
-	_hud.add_child(combo_label)
+    combo_label = Label.new()
+    combo_label.name = "ComboLabel"
+    combo_label.add_theme_font_size_override("font_size", 36)
+    combo_label.add_theme_color_override("font_color", Color.YELLOW)
+    combo_label.add_theme_color_override("font_shadow_color", Color.BLACK)
+    combo_label.add_theme_constant_override("shadow_offset_x", 2)
+    combo_label.add_theme_constant_override("shadow_offset_y", 2)
+    combo_label.position = Vector2(screen_size.x - 250, 100)
+    combo_label.visible = false
+    _hud.add_child(combo_label)
 
 
 func _update_combo_system(_delta: float) -> void:
-	_check_obstacle_dodge()
-	if combo_count > 0 and (_now_sec() - last_dodge_time) > COMBO_RESET_TIME:
-		if combo_count > max_combo_run: max_combo_run = combo_count
-		combo_count = 0
-		_update_combo_ui()
+    _check_obstacle_dodge()
+    if combo_count > 0 and (_now_sec() - last_dodge_time) > COMBO_RESET_TIME:
+        if combo_count > max_combo_run: max_combo_run = combo_count
+        combo_count = 0
+        _update_combo_ui()
 
 
 func _check_obstacle_dodge() -> void:
-	var dino_pos = $Dino.global_position
-	for obs in obstacles:
-		if obs == null or obs.has_meta("dodged"):
-			continue
-		var obs_pos = obs.global_position
-		if obs_pos.x < dino_pos.x and abs(obs_pos.x - dino_pos.x) <= 100.0:
-			var perfect := _is_perfect_dodge(obs)
-			obs.set_meta("dodged", true)
-			_on_obstacle_dodged(perfect)
+    var dino_pos = $Dino.global_position
+    for obs in obstacles:
+        if obs == null or obs.has_meta("dodged"):
+            continue
+        var obs_pos = obs.global_position
+        if obs_pos.x < dino_pos.x and abs(obs_pos.x - dino_pos.x) <= 100.0:
+            var perfect := _is_perfect_dodge(obs)
+            obs.set_meta("dodged", true)
+            _on_obstacle_dodged(perfect)
 
 
 func _on_obstacle_dodged(perfect: bool=false) -> void:
-	combo_count += 1
-	last_dodge_time = _now_sec()
-	var bonus_points = combo_count * 10
-	add_score_points(bonus_points, $Dino.global_position + Vector2(0, -50))
-	if perfect:
-		near_miss_count += 1
-		add_score_points(PERFECT_DODGE_POINTS, $Dino.global_position + Vector2(0, -70))
-		shake_screen(6.0, 0.20)
-	_update_combo_ui()
-	_update_stats_hud()
-	_show_combo_text()
+    combo_count += 1
+    last_dodge_time = _now_sec()
+    var bonus_points = combo_count * 10
+    add_score_points(bonus_points, $Dino.global_position + Vector2(0, -50))
+    if perfect:
+        near_miss_count += 1
+        add_score_points(PERFECT_DODGE_POINTS, $Dino.global_position + Vector2(0, -70))
+        shake_screen(6.0, 0.20)
+        _create_explosion("vortex", $Dino.global_position + Vector2(30, 0), 1.0)
+    if combo_count >= 10:
+        _create_explosion("round", $Dino.global_position + Vector2(0, -30), 1.2)
+    _update_combo_ui()
+    _update_stats_hud()
+    _show_combo_text()
 
 
 func _update_combo_ui() -> void:
-	if combo_count <= 0:
-		combo_label.visible = false
-		return
-	combo_label.visible = true
-	combo_label.text = "COMBO x" + str(combo_count)
-	if combo_count >= 10:
-		combo_label.add_theme_color_override("font_color", Color.MAGENTA)
-	elif combo_count >= 5:
-		combo_label.add_theme_color_override("font_color", Color.RED)
-	else:
-		combo_label.add_theme_color_override("font_color", Color.YELLOW)
+    if combo_count <= 0:
+        combo_label.visible = false
+        return
+    combo_label.visible = true
+    combo_label.text = "COMBO x" + str(combo_count)
+    if combo_count >= 10:
+        combo_label.add_theme_color_override("font_color", Color.MAGENTA)
+    elif combo_count >= 5:
+        combo_label.add_theme_color_override("font_color", Color.RED)
+    else:
+        combo_label.add_theme_color_override("font_color", Color.YELLOW)
 
 
 func _show_combo_text() -> void:
-	var combo_text := ""
-	if combo_count >= 15:
-		combo_text = "LEGENDARY!"
-	elif combo_count >= 10:
-		combo_text = "AMAZING!"
-	elif combo_count >= 5:
-		combo_text = "GREAT!"
-	elif combo_count >= 3:
-		combo_text = "NICE!"
-	else:
-		return
-	_spawn_floating_text($Dino.global_position + Vector2(0, -80), combo_text)
+    var combo_text := ""
+    if combo_count >= 15:
+        combo_text = "LEGENDARY!"
+    elif combo_count >= 10:
+        combo_text = "AMAZING!"
+    elif combo_count >= 5:
+        combo_text = "GREAT!"
+    elif combo_count >= 3:
+        combo_text = "NICE!"
+    else:
+        return
+    _spawn_floating_text($Dino.global_position + Vector2(0, -80), combo_text)
 
 
 # --- 1) ขนาดสไปรท์/แอนิเมชันของ node ใด ๆ (Godot 4) ---
 func _sprite_dims_from(node: Node) -> Vector2:
-	var spr: Sprite2D = node.get_node_or_null("Sprite2D") as Sprite2D
-	if spr and spr.texture:
-		return Vector2(
-			spr.texture.get_width() * spr.scale.x,
-			spr.texture.get_height() * spr.scale.y
-		)
+    var spr: Sprite2D = node.get_node_or_null("Sprite2D") as Sprite2D
+    if spr and spr.texture:
+        return Vector2(
+            spr.texture.get_width() * spr.scale.x,
+            spr.texture.get_height() * spr.scale.y
+        )
 
-	var anim: AnimatedSprite2D = node.get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
-	if anim:
-		var sf: SpriteFrames = anim.sprite_frames
-		if sf:
-			var anim_name: StringName = anim.animation
-			var names: PackedStringArray = sf.get_animation_names()
-			if (anim_name == &"" or not names.has(String(anim_name))) and names.size() > 0:
-				anim_name = StringName(names[0])  # ใช้อันแรกถ้าไม่ได้ตั้ง
+    var anim: AnimatedSprite2D = node.get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
+    if anim:
+        var sf: SpriteFrames = anim.sprite_frames
+        if sf:
+            var anim_name: StringName = anim.animation
+            var names: PackedStringArray = sf.get_animation_names()
+            if (anim_name == &"" or not names.has(String(anim_name))) and names.size() > 0:
+                anim_name = StringName(names[0])  # ใช้อันแรกถ้าไม่ได้ตั้ง
 
-			var count: int = sf.get_frame_count(anim_name)
-			if count > 0:
-				var idx: int = clampi(anim.frame, 0, count - 1)
-				var tex: Texture2D = sf.get_frame_texture(anim_name, idx)
-				if tex:
-					return Vector2(tex.get_width() * anim.scale.x, tex.get_height() * anim.scale.y)
+            var count: int = sf.get_frame_count(anim_name)
+            if count > 0:
+                var idx: int = clampi(anim.frame, 0, count - 1)
+                var tex: Texture2D = sf.get_frame_texture(anim_name, idx)
+                if tex:
+                    return Vector2(tex.get_width() * anim.scale.x, tex.get_height() * anim.scale.y)
 
-	return Vector2(48, 48)  # fallback
+    return Vector2(48, 48)  # fallback
 
 
 # --- 2) ขนาดของไดโนเอง (Godot 4) ---
 func _dino_dims() -> Vector2:
-	var anim: AnimatedSprite2D = $Dino.get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
-	if anim:
-		var sf: SpriteFrames = anim.sprite_frames
-		if sf:
-			var anim_name: StringName = anim.animation
-			var names: PackedStringArray = sf.get_animation_names()
-			if (anim_name == &"" or not names.has(String(anim_name))) and names.size() > 0:
-				anim_name = StringName(names[0])
+    var anim: AnimatedSprite2D = $Dino.get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
+    if anim:
+        var sf: SpriteFrames = anim.sprite_frames
+        if sf:
+            var anim_name: StringName = anim.animation
+            var names: PackedStringArray = sf.get_animation_names()
+            if (anim_name == &"" or not names.has(String(anim_name))) and names.size() > 0:
+                anim_name = StringName(names[0])
 
-			var count: int = sf.get_frame_count(anim_name)
-			if count > 0:
-				var idx: int = clampi(anim.frame, 0, count - 1)
-				var tex: Texture2D = sf.get_frame_texture(anim_name, idx)
-				if tex:
-					return Vector2(tex.get_width() * anim.scale.x, tex.get_height() * anim.scale.y)
+            var count: int = sf.get_frame_count(anim_name)
+            if count > 0:
+                var idx: int = clampi(anim.frame, 0, count - 1)
+                var tex: Texture2D = sf.get_frame_texture(anim_name, idx)
+                if tex:
+                    return Vector2(tex.get_width() * anim.scale.x, tex.get_height() * anim.scale.y)
 
-	var spr: Sprite2D = $Dino.get_node_or_null("Sprite2D") as Sprite2D
-	if spr and spr.texture:
-		return Vector2(
-			spr.texture.get_width() * spr.scale.x,
-			spr.texture.get_height() * spr.scale.y
-		)
+    var spr: Sprite2D = $Dino.get_node_or_null("Sprite2D") as Sprite2D
+    if spr and spr.texture:
+        return Vector2(
+            spr.texture.get_width() * spr.scale.x,
+            spr.texture.get_height() * spr.scale.y
+        )
 
-	return Vector2(48, 48)  # fallback
+    return Vector2(48, 48)  # fallback
 
 # --- 3) ตรวจ PERFECT DODGE (ใส่ชนิดให้ครบเพื่อโหมด strict) ---
 func _is_perfect_dodge(obs: Node2D) -> bool:
-	var dpos: Vector2 = $Dino.global_position
-	var opos: Vector2 = obs.global_position
+    var dpos: Vector2 = $Dino.global_position
+    var opos: Vector2 = obs.global_position
 
-	if abs(opos.x - dpos.x) > PERFECT_DODGE_X_WINDOW:
-		return false
+    if abs(opos.x - dpos.x) > PERFECT_DODGE_X_WINDOW:
+        return false
 
-	var od: Vector2 = _sprite_dims_from(obs)
-	var dd: Vector2 = _dino_dims()
+    var od: Vector2 = _sprite_dims_from(obs)
+    var dd: Vector2 = _dino_dims()
 
-	var dino_top: float = dpos.y - dd.y * 0.5
-	var dino_bottom: float = dpos.y + dd.y * 0.5
-	var obs_top: float = opos.y - od.y * 0.5
-	var obs_bottom: float = opos.y + od.y * 0.5
+    var dino_top: float = dpos.y - dd.y * 0.5
+    var dino_bottom: float = dpos.y + dd.y * 0.5
+    var obs_top: float = opos.y - od.y * 0.5
+    var obs_bottom: float = opos.y + od.y * 0.5
 
-	var t: String = String(obs.get_meta("type"))
-	if t == "bird":
-		var gap: float = obs_bottom - dino_top
-		return gap >= 0.0 and gap <= PERFECT_DODGE_Y_TOL_BIRD
-	else:
-		var gap2: float = dino_bottom - obs_top
-		return gap2 >= 0.0 and gap2 <= PERFECT_DODGE_Y_TOL_GROUND
+    var t: String = String(obs.get_meta("type"))
+    if t == "bird":
+        var gap: float = obs_bottom - dino_top
+        return gap >= 0.0 and gap <= PERFECT_DODGE_Y_TOL_BIRD
+    else:
+        var gap2: float = dino_bottom - obs_top
+        return gap2 >= 0.0 and gap2 <= PERFECT_DODGE_Y_TOL_GROUND
 
 
 # ---------------------------------------------------------
 # OBSTACLES (UPDATED WITH SHAKE)
 # ---------------------------------------------------------
 func generate_obs() -> void:
-	var cam_x: int = int($Camera2D.position.x)
-	var spawn_front: int = cam_x + screen_size.x + 100
-	if spawn_front < next_obs_spawn_x: return
+    var cam_x: int = int($Camera2D.position.x)
+    var spawn_front: int = cam_x + screen_size.x + 100
+    if spawn_front < next_obs_spawn_x: return
 
-	var start_x: int = int(max(
-		next_obs_spawn_x,
-		int(last_spawn_right) + MIN_GAP_ANY,
-		cam_x + MIN_FRONT_BUFFER
-	))
+    var start_x: int = int(max(
+        next_obs_spawn_x,
+        int(last_spawn_right) + MIN_GAP_ANY,
+        cam_x + MIN_FRONT_BUFFER
+    ))
 
-	var spawn_bird_only: bool = randf() < 0.30
+    var spawn_bird_only: bool = randf() < 0.30 and difficulty >= 1
 
-	if spawn_bird_only and difficulty >= 1:
-		var bird = bird_scene.instantiate()
-		bird.set_meta("type", "bird")
-		var bx: int = start_x
-		if last_spawn_type == "obs":
-			bx = max(bx, int(last_spawn_right) + MIN_GAP_BIRD_AFTER_OBS)
-		var by: int = bird_heights[rng.randi_range(0, bird_heights.size() - 1)]
-		add_obs(bird, bx, by)
-		last_spawn_right = float(bx + 48)
-		last_spawn_type  = "bird"
-	else:
-		var obs_type = obstacle_types[randi() % obstacle_types.size()]
-		var obs = obs_type.instantiate()
-		obs.set_meta("type", "ground")
+    if spawn_bird_only:
+        var bird = bird_scene.instantiate()
+        bird.set_meta("type", "bird")
+        var bx: int = start_x
+        if last_spawn_type == "obs":
+            bx = max(bx, int(last_spawn_right) + MIN_GAP_BIRD_AFTER_OBS)
+        var by: int = bird_heights[rng.randi_range(0, bird_heights.size() - 1)]
+        add_obs(bird, bx, by)
+        last_spawn_right = float(bx + 48)
+        last_spawn_type  = "bird"
+    else:
+        var obs_type = obstacle_types[randi() % obstacle_types.size()]
+        var obs = obs_type.instantiate()
+        obs.set_meta("type", "ground")
 
-		var spr = obs.get_node("Sprite2D")
-		var tex_w: int = spr.texture.get_width()
-		var tex_h: int = spr.texture.get_height()
-		var scx: float = spr.scale.x
-		var scy: float = spr.scale.y
-		var half_w: int = int(round(tex_w * scx * 0.5))
+        var spr = obs.get_node("Sprite2D")
+        var tex_w: int = spr.texture.get_width()
+        var tex_h: int = spr.texture.get_height()
+        var scx: float = spr.scale.x
+        var scy: float = spr.scale.y
+        var half_w: int = int(round(tex_w * scx * 0.5))
 
-		var obs_y: int = 552 - int(round(tex_h * scy * 0.5))
-		var obs_x: int = start_x
-		add_obs(obs, obs_x, obs_y)
+        var obs_y: int = 600 - int(round(tex_h * scy))
+        var obs_x: int = start_x
+        add_obs(obs, obs_x, obs_y)
 
-		last_spawn_right = float(obs_x + half_w)
-		last_spawn_type  = "obs"
+        last_spawn_right = float(obs_x + half_w)
+        last_spawn_type  = "obs"
 
-	next_obs_spawn_x = int(last_spawn_right) + randi_range(OBS_GAP_MIN, OBS_GAP_MAX)
+    next_obs_spawn_x = int(last_spawn_right) + randi_range(OBS_GAP_MIN, OBS_GAP_MAX)
 
 
 func add_obs(obs, x: int, y: int) -> void:
-	obs.position = Vector2i(x, y)
-	obs.body_entered.connect(hit_obs.bind(obs))
-	add_child(obs)
-	obstacles.append(obs)
+    obs.position = Vector2i(x, y)
+    obs.body_entered.connect(hit_obs.bind(obs))
+    add_child(obs)
+    obstacles.append(obs)
 
 
 func remove_obs(obs) -> void:
-	if obs == null: return
-	obs.queue_free()
-	obstacles.erase(obs)
+    if obs == null: return
+    obs.queue_free()
+    obstacles.erase(obs)
 
 
 func hit_obs(body, obs):
-	if body.name != "Dino": return
-	if invincible:
-		var now: float = _now_sec()
-		if now - _last_hit_time < HIT_COOLDOWN: return
-		_last_hit_time = now
-		add_score_points(HIT_REWARD_POINTS, obs.global_position)
-		shake_screen(8.0, 0.3)
-		remove_obs(obs)
-	else:
-		shake_screen(15.0, 0.5)
-		game_over()
+    if body.name != "Dino": return
+    if invincible:
+        var now: float = _now_sec()
+        if now - _last_hit_time < HIT_COOLDOWN: return
+        _last_hit_time = now
+        add_score_points(HIT_REWARD_POINTS, obs.global_position)
+        shake_screen(8.0, 0.3)
+        _create_explosion("small", obs.global_position, 1.5)
+        remove_obs(obs)
+    else:
+        shake_screen(15.0, 0.5)
+        game_over()
 
 
 # ---------------------------------------------------------
 # SCORE / HUD
 # ---------------------------------------------------------
 func show_score() -> void:
-	var display_score: int = int(score / SCORE_MODIFIER)
-	if _lb_score: _lb_score.text = "SCORE: " + str(display_score)
+    var display_score: int = int(score / SCORE_MODIFIER)
+    if _lb_score: _lb_score.text = "SCORE: " + str(display_score)
 
 
 func check_high_score() -> void:
-	if score > high_score:
-		high_score = int(score)
-		if _lb_high: _lb_high.text = "HIGH SCORE: " + str(high_score / SCORE_MODIFIER)
+    if score > high_score:
+        high_score = int(score)
+        if _lb_high: _lb_high.text = "HIGH SCORE: " + str(high_score / SCORE_MODIFIER)
 
 
 func adjust_difficulty() -> void:
-	difficulty = int(score / float(SPEED_MODIFIER))
-	if difficulty > MAX_DIFFICULTY: difficulty = MAX_DIFFICULTY
+    difficulty = int(score / float(SPEED_MODIFIER))
+    if difficulty > MAX_DIFFICULTY: difficulty = MAX_DIFFICULTY
 
 
 func game_over() -> void:
-	check_high_score()
-	get_tree().paused = true
-	game_running = false
-	$GameOver.show()
-	$GameOver.get_node("Button").grab_focus()
+    check_high_score()
+    get_tree().paused = true
+    game_running = false
+    
+    # Calculate game statistics
+    var play_time = _now_sec() - run_start_time
+    var distance_meters = int(max(0.0, ($Dino.position.x - float(DINO_START_POS.x)) / PX_PER_METER))
+    var display_score = int(score / SCORE_MODIFIER)
+    var best_score = load_best_score()
+    
+    # Create game data for GameOver UI
+    var game_data = {
+        "score": display_score,
+        "coins": coins_collected,
+        "distance": distance_meters,
+        "time": play_time,
+        "best_score": best_score,
+        "perfect_dodges": near_miss_count,
+        "max_combo": max_combo_run
+    }
+    
+    # Show GameOver UI with data
+    if game_over_ui:
+        game_over_ui.show_game_over(game_data)
+    else:
+        print("ERROR: game_over_ui is null!")
 
 
 # ---------------------------------------------------------
 # COINS (UPDATED WITH PARTICLES)
 # ---------------------------------------------------------
 func _last_obs_x() -> float:
-	if obstacles.is_empty(): return -1.0e12
-	var mx: float = -1.0e12
-	for o in obstacles:
-		if float(o.position.x) > mx:
-			mx = float(o.position.x)
-	return mx
+    if obstacles.is_empty(): return -1.0e12
+    var mx: float = -1.0e12
+    for o in obstacles:
+        if float(o.position.x) > mx:
+            mx = float(o.position.x)
+    return mx
 
 
 func _spawn_next_coin() -> void:
-	var cam_x: float = float($Camera2D.position.x)
-	var front_buffer: float = float(screen_size.x) * 0.60
-	var safe_from_obs: float = _last_obs_x() + COIN_SAFE_FROM_OBS
-	var x: float = max(next_coin_x, cam_x + front_buffer, safe_from_obs)
+    var cam_x: float = float($Camera2D.position.x)
+    var front_buffer: float = float(screen_size.x) * 0.60
+    var safe_from_obs: float = _last_obs_x() + COIN_SAFE_FROM_OBS
+    var x: float = max(next_coin_x, cam_x + front_buffer, safe_from_obs)
 
-	var lane_idx: int = rng.randi_range(0, item_lanes_y.size() - 1)
-	var y: float = float(item_lanes_y[lane_idx])
+    var lane_idx: int = rng.randi_range(0, item_lanes_y.size() - 1)
+    var y: float = float(item_lanes_y[lane_idx])
 
-	var c = coin_scene.instantiate()
-	c.global_position = Vector2(x, y)
+    var c = coin_scene.instantiate()
+    c.global_position = Vector2(x, y)
 
-	# connect signal "collected" ถ้ามี
-	if c.has_signal("collected"):
-		c.collected.connect(_on_coin_collected)
+    # connect signal "collected" ถ้ามี
+    if c.has_signal("collected"):
+        c.collected.connect(_on_coin_collected)
 
-	items.add_child(c)
-	next_coin_x = x + rng.randf_range(COIN_GAP_MIN, COIN_GAP_MAX)
+    items.add_child(c)
+    next_coin_x = x + rng.randf_range(COIN_GAP_MIN, COIN_GAP_MAX)
 
 
 func _on_coin_collected(coin_pos: Vector2) -> void:
-	_play_coin_particle(coin_pos)
-	shake_screen(3.0, 0.15)
+    coins_collected += 1
+    _play_coin_particle(coin_pos)
+    shake_screen(3.0, 0.15)
 
 
 # ---------------------------------------------------------
 # INVINCIBLE: HUD + GLOW + FOG
 # ---------------------------------------------------------
 func _start_invincible(sec: float) -> void:
-	invincible   = true
-	inv_end_time = _now_sec() + sec
+    invincible   = true
+    inv_end_time = _now_sec() + sec
 
-	_set_glow(true)
-	_fog_hide_for_invincible()
+    _set_glow(true)
+    _fog_hide_for_invincible()
 
-	_ensure_inv_hud()
-	inv_panel.show()
-	inv_bar.max_value = sec
-	inv_bar.value     = sec
-	inv_label.text    = "%0.1fs" % sec
+    _ensure_inv_hud()
+    inv_panel.show()
+    inv_bar.max_value = sec
+    inv_bar.value     = sec
+    inv_label.text    = "%0.1fs" % sec
 
 
 func _update_inv_ui(remaining: float) -> void:
-	_ensure_inv_hud()
-	remaining = clamp(remaining, 0.0, INVINCIBLE_DURATION)
-	if remaining > 0.0:
-		if not inv_panel.visible: inv_panel.show()
-		inv_bar.max_value = INVINCIBLE_DURATION
-		inv_bar.value     = remaining
-		inv_label.text    = "%0.1fs" % remaining
-		inv_label.modulate = Color(1, 0.4, 0.4) if remaining <= 1.0 else Color(1, 1, 1)
-	else:
-		inv_panel.hide()
+    _ensure_inv_hud()
+    remaining = clamp(remaining, 0.0, INVINCIBLE_DURATION)
+    if remaining > 0.0:
+        if not inv_panel.visible: inv_panel.show()
+        inv_bar.max_value = INVINCIBLE_DURATION
+        inv_bar.value     = remaining
+        inv_label.text    = "%0.1fs" % remaining
+        inv_label.modulate = Color(1, 0.4, 0.4) if remaining <= 1.0 else Color(1, 1, 1)
+    else:
+        inv_panel.hide()
 
 
 func _ensure_inv_hud() -> void:
-	if inv_panel != null and inv_bar != null and inv_label != null:
-		return
-	var hud := _hud
-	var panel := hud.get_node_or_null("InvPanel") as Control
-	if panel == null:
-		panel = Control.new()
-		panel.name = "InvPanel"
-		panel.visible = false
-		panel.position = Vector2(20, 20)
-		panel.size = Vector2(260, 26)
-		hud.add_child(panel)
+    if inv_panel != null and inv_bar != null and inv_label != null:
+        return
+    var hud := _hud
+    var panel := hud.get_node_or_null("InvPanel") as Control
+    if panel == null:
+        panel = Control.new()
+        panel.name = "InvPanel"
+        panel.visible = false
+        panel.position = Vector2(20, 20)
+        panel.size = Vector2(260, 26)
+        hud.add_child(panel)
 
-		var bar := ProgressBar.new()
-		bar.name = "InvBar"
-		bar.min_value = 0.0
-		bar.max_value = INVINCIBLE_DURATION
-		bar.value = 0.0
-		bar.position = Vector2(0, 3)
-		bar.size = Vector2(200, 20)
-		panel.add_child(bar)
+        var bar := ProgressBar.new()
+        bar.name = "InvBar"
+        bar.min_value = 0.0
+        bar.max_value = INVINCIBLE_DURATION
+        bar.value = 0.0
+        bar.position = Vector2(0, 3)
+        bar.size = Vector2(200, 20)
+        panel.add_child(bar)
 
-		var label := Label.new()
-		label.name = "InvLabel"
-		label.text = "0.0s"
-		label.position = Vector2(208, 3)
-		panel.add_child(label)
+        var label := Label.new()
+        label.name = "InvLabel"
+        label.text = "0.0s"
+        label.position = Vector2(208, 3)
+        panel.add_child(label)
 
-	inv_panel = panel
-	inv_bar   = panel.get_node("InvBar") as ProgressBar
-	inv_label = panel.get_node("InvLabel") as Label
+    inv_panel = panel
+    inv_bar   = panel.get_node("InvBar") as ProgressBar
+    inv_label = panel.get_node("InvLabel") as Label
 
 
 # ----- Outline Glow Effect -----
 func _ensure_glow_overlay() -> void:
-	var spr := $Dino.get_node("AnimatedSprite2D") as AnimatedSprite2D
-	if spr.material != null and spr.material.get("shader") != null:
-		return
+    var spr := $Dino.get_node("AnimatedSprite2D") as AnimatedSprite2D
+    if spr.material != null and spr.material.get("shader") != null:
+        return
 
-	var shader_code := """
+    var shader_code := """
 shader_type canvas_item;
 uniform float outline_width : hint_range(0.0, 10.0) = 2.0;
 uniform vec4 outline_color : source_color = vec4(1.0, 1.0, 0.0, 1.0);
 uniform float glow_intensity : hint_range(0.0, 2.0) = 1.0;
 void fragment() {
-	vec2 size = TEXTURE_PIXEL_SIZE * outline_width;
-	vec4 sprite_color = texture(TEXTURE, UV);
-	float outline = 0.0;
-	for(float x = -1.0; x <= 1.0; x += 1.0) {
-		for(float y = -1.0; y <= 1.0; y += 1.0) {
-			if(x == 0.0 && y == 0.0) continue;
-			vec2 offset = vec2(x, y) * size;
-			outline += texture(TEXTURE, UV + offset).a;
-		}
-	}
-	outline = min(outline, 1.0);
-	if(sprite_color.a == 0.0 && outline > 0.0) {
-		COLOR = outline_color * glow_intensity;
-	} else {
-		COLOR = sprite_color;
-	}
+    vec2 size = TEXTURE_PIXEL_SIZE * outline_width;
+    vec4 sprite_color = texture(TEXTURE, UV);
+    float outline = 0.0;
+    for(float x = -1.0; x <= 1.0; x += 1.0) {
+        for(float y = -1.0; y <= 1.0; y += 1.0) {
+            if(x == 0.0 && y == 0.0) continue;
+            vec2 offset = vec2(x, y) * size;
+            outline += texture(TEXTURE, UV + offset).a;
+        }
+    }
+    outline = min(outline, 1.0);
+    if(sprite_color.a == 0.0 && outline > 0.0) {
+        COLOR = outline_color * glow_intensity;
+    } else {
+        COLOR = sprite_color;
+    }
 }
 """
-	var shader := Shader.new()
-	shader.code = shader_code
-	var material := ShaderMaterial.new()
-	material.shader = shader
-	material.set_shader_parameter("outline_width", 0.0)
-	material.set_shader_parameter("outline_color", Color(1.0, 1.0, 0.0, 0.8))
-	material.set_shader_parameter("glow_intensity", 0.0)
-	spr.material = material
+    var shader := Shader.new()
+    shader.code = shader_code
+    var material := ShaderMaterial.new()
+    material.shader = shader
+    material.set_shader_parameter("outline_width", 0.0)
+    material.set_shader_parameter("outline_color", Color(1.0, 1.0, 0.0, 0.8))
+    material.set_shader_parameter("glow_intensity", 0.0)
+    spr.material = material
 
 
 func _set_glow(on: bool) -> void:
-	var spr := $Dino.get_node("AnimatedSprite2D") as AnimatedSprite2D
-	_ensure_glow_overlay()
-	var material := spr.material as ShaderMaterial
-	if material == null: return
+    var spr := $Dino.get_node("AnimatedSprite2D") as AnimatedSprite2D
+    _ensure_glow_overlay()
+    var material := spr.material as ShaderMaterial
+    if material == null: return
 
-	if on:
-		var tween := create_tween()
-		tween.set_loops()
-		tween.parallel().tween_method(
-			func(val): material.set_shader_parameter("outline_width", val),
-			0.0, 3.0, 0.5
-		)
-		tween.parallel().tween_method(
-			func(val): material.set_shader_parameter("glow_intensity", val),
-			0.0, 1.5, 0.5
-		)
-		tween.parallel().tween_method(
-			func(val): material.set_shader_parameter("outline_width", val),
-			3.0, 1.5, 0.5
-		)
-		tween.parallel().tween_method(
-			func(val): material.set_shader_parameter("glow_intensity", val),
-			1.5, 0.8, 0.5
-		)
-	else:
-		var tweens = get_tree().get_processed_tweens()
-		for t in tweens:
-			if t.is_valid():
-				t.kill()
-		material.set_shader_parameter("outline_width", 0.0)
-		material.set_shader_parameter("glow_intensity", 0.0)
+    if on:
+        var tween := create_tween()
+        tween.set_loops()
+        tween.parallel().tween_method(
+            func(val): material.set_shader_parameter("outline_width", val),
+            0.0, 3.0, 0.5
+        )
+        tween.parallel().tween_method(
+            func(val): material.set_shader_parameter("glow_intensity", val),
+            0.0, 1.5, 0.5
+        )
+        tween.parallel().tween_method(
+            func(val): material.set_shader_parameter("outline_width", val),
+            3.0, 1.5, 0.5
+        )
+        tween.parallel().tween_method(
+            func(val): material.set_shader_parameter("glow_intensity", val),
+            1.5, 0.8, 0.5
+        )
+    else:
+        var tweens = get_tree().get_processed_tweens()
+        for t in tweens:
+            if t.is_valid():
+                t.kill()
+        material.set_shader_parameter("outline_width", 0.0)
+        material.set_shader_parameter("glow_intensity", 0.0)
 
 
 # ----- Time helper -----
 func _now_sec() -> float:
-	return float(Time.get_ticks_msec()) / 1000.0
+    return float(Time.get_ticks_msec()) / 1000.0
 
 
 # ----- Score helpers -----
 func _score_multiplier() -> float:
-	if combo_count >= 15: return 1.5
-	if combo_count >= 10: return 1.25
-	if combo_count >= 5:  return 1.1
-	return 1.0
+    if combo_count >= 15: return 1.5
+    if combo_count >= 10: return 1.25
+    if combo_count >= 5:  return 1.1
+    return 1.0
 
 
 func add_score_points(points: int, world_pos: Vector2 = Vector2.ZERO, use_multiplier: bool = true) -> void:
-	var p := points
-	if use_multiplier:
-		p = int(round(points * _score_multiplier()))
-	score += p * SCORE_MODIFIER
-	show_score()
-	if world_pos != Vector2.ZERO:
-		_spawn_floating_text(world_pos, "+" + str(p))
+    var p := points
+    if use_multiplier:
+        p = int(round(points * _score_multiplier()))
+    score += p * SCORE_MODIFIER
+    show_score()
+    if world_pos != Vector2.ZERO:
+        _spawn_floating_text(world_pos, "+" + str(p))
 
 
 func _update_stats_hud() -> void:
-	if _lb_perfect:   _lb_perfect.text   = "PERFECT: " + str(near_miss_count)
-	if _lb_combo:     _lb_combo.text     = "COMBO: x" + str(max(combo_count, 0))
-	var meters := int(max(0.0, ($Dino.position.x - float(DINO_START_POS.x)) / PX_PER_METER))
-	if _lb_distance:  _lb_distance.text  = "DISTANCE: %dm" % meters
-	if _lb_multiplier:_lb_multiplier.text = "MULTIPLIER: x%.1f" % _score_multiplier()
+    if _lb_perfect:   _lb_perfect.text   = "PERFECT: " + str(near_miss_count)
+    if _lb_combo:     _lb_combo.text     = "COMBO: x" + str(max(combo_count, 0))
+    var meters := int(max(0.0, ($Dino.position.x - float(DINO_START_POS.x)) / PX_PER_METER))
+    if _lb_distance:  _lb_distance.text  = "DISTANCE: %dm" % meters
+    if _lb_multiplier:_lb_multiplier.text = "MULTIPLIER: x%.1f" % _score_multiplier()
 
 
 # ----- Floating world text -----
 func _world_to_screen(p: Vector2) -> Vector2:
-	return p - $Camera2D.position + Vector2(float(screen_size.x), float(screen_size.y)) * 0.5
+    return p - $Camera2D.position + Vector2(float(screen_size.x), float(screen_size.y)) * 0.5
 
 
 func _spawn_floating_text(world_pos: Vector2, text: String) -> void:
-	var lbl := Label.new()
-	lbl.text = text
-	lbl.add_theme_font_size_override("font_size", 24)
-	lbl.add_theme_color_override("font_color", Color.WHITE)
-	lbl.add_theme_color_override("font_shadow_color", Color.BLACK)
-	lbl.add_theme_constant_override("shadow_offset_x", 1)
-	lbl.add_theme_constant_override("shadow_offset_y", 1)
-	lbl.modulate.a = 1.0
-	_hud.add_child(lbl)
-	lbl.position = _world_to_screen(world_pos)
+    var lbl := Label.new()
+    lbl.text = text
+    
+    # ปรับขนาดและสีตามประเภทคะแนน
+    var font_size: int = 32
+    var color: Color = Color.WHITE
+    var outline_color: Color = Color.BLACK
+    var scale_start: float = 0.5
+    var scale_end: float = 1.2
+    
+    if text.begins_with("+"):
+        var points = int(text.substr(1))
+        if points >= 50:  # HIT_REWARD_POINTS
+            font_size = 40
+            color = Color.ORANGE
+            outline_color = Color.RED
+            scale_end = 1.5
+        elif points >= 20:  # Combo bonus
+            font_size = 36
+            color = Color.YELLOW
+            outline_color = Color.ORANGE
+            scale_end = 1.3
+        elif points >= 10:  # Perfect dodge
+            font_size = 34
+            color = Color.CYAN
+            outline_color = Color.BLUE
+    
+    lbl.add_theme_font_size_override("font_size", font_size)
+    lbl.add_theme_color_override("font_color", color)
+    lbl.add_theme_color_override("font_shadow_color", outline_color)
+    lbl.add_theme_constant_override("shadow_offset_x", 2)
+    lbl.add_theme_constant_override("shadow_offset_y", 2)
+    lbl.modulate.a = 1.0
+    lbl.scale = Vector2(scale_start, scale_start)
+    _hud.add_child(lbl)
+    lbl.position = _world_to_screen(world_pos)
 
-	var tween := create_tween()
-	tween.parallel().tween_property(lbl, "position:y", lbl.position.y - 40.0, 0.8)
-	tween.parallel().tween_property(lbl, "modulate:a", 0.0, 0.8)
-	tween.tween_callback(lbl.queue_free)
+    var tween := create_tween()
+    # Scale up animation
+    tween.parallel().tween_property(lbl, "scale", Vector2(scale_end, scale_end), 0.2)
+    tween.parallel().tween_property(lbl, "position:y", lbl.position.y - 60.0, 1.0)
+    # Fade out
+    tween.parallel().tween_property(lbl, "modulate:a", 0.0, 1.0)
+    # Scale down at the end
+    tween.parallel().tween_property(lbl, "scale", Vector2(0.8, 0.8), 1.0)
+    tween.tween_callback(lbl.queue_free)
 
 
 # ----- Fog helpers -----
 func _fog_set_alpha(a: float) -> void:
-	if fog_mat == null: return
-	var col: Color = fog_mat.get_shader_parameter("fog_color")
-	col.a = a
-	fog_mat.set_shader_parameter("fog_color", col)
+    if fog_mat == null: return
+    var col: Color = fog_mat.get_shader_parameter("fog_color")
+    col.a = a
+    fog_mat.set_shader_parameter("fog_color", col)
 
 
 func _fog_hide_for_invincible() -> void:
-	if fog_mat == null or _fog_hidden_by_inv: return
-	_fog_prev_alpha = (fog_mat.get_shader_parameter("fog_color") as Color).a
-	_fog_hidden_by_inv = true
+    if fog_mat == null or _fog_hidden_by_inv: return
+    _fog_prev_alpha = (fog_mat.get_shader_parameter("fog_color") as Color).a
+    _fog_hidden_by_inv = true
 
-	if _fog_tween and is_instance_valid(_fog_tween): _fog_tween.kill()
-	if _fog_radius_tween and is_instance_valid(_fog_radius_tween): _fog_radius_tween.kill()
+    if _fog_tween and is_instance_valid(_fog_tween): _fog_tween.kill()
+    if _fog_radius_tween and is_instance_valid(_fog_radius_tween): _fog_radius_tween.kill()
 
-	_fog_tween = create_tween()
-	_fog_tween.parallel().tween_method(_fog_set_alpha, _fog_prev_alpha, 0.0, 0.8)
+    _fog_tween = create_tween()
+    _fog_tween.parallel().tween_method(_fog_set_alpha, _fog_prev_alpha, 0.0, 0.8)
 
-	_fog_radius_tween = create_tween()
-	var current_radius = fog_mat.get_shader_parameter("radius_px") as float
-	_fog_radius_tween.tween_method(
-		func(r): fog_mat.set_shader_parameter("radius_px", r),
-		current_radius,
-		screen_size.x * 1.5,
-		1.0
-	)
+    _fog_radius_tween = create_tween()
+    var current_radius = fog_mat.get_shader_parameter("radius_px") as float
+    _fog_radius_tween.tween_method(
+        func(r): fog_mat.set_shader_parameter("radius_px", r),
+        current_radius,
+        screen_size.x * 1.5,
+        1.0
+    )
 
 
 func _fog_restore_after_invincible() -> void:
-	if fog_mat == null or not _fog_hidden_by_inv: return
-	_fog_hidden_by_inv = false
+    if fog_mat == null or not _fog_hidden_by_inv: return
+    _fog_hidden_by_inv = false
 
-	if _fog_tween and is_instance_valid(_fog_tween): _fog_tween.kill()
-	if _fog_radius_tween and is_instance_valid(_fog_radius_tween): _fog_radius_tween.kill()
+    if _fog_tween and is_instance_valid(_fog_tween): _fog_tween.kill()
+    if _fog_radius_tween and is_instance_valid(_fog_radius_tween): _fog_radius_tween.kill()
 
-	_fog_tween = create_tween()
-	_fog_tween.tween_method(_fog_set_alpha, 0.0, FOG_ALPHA_MAX, 0.8)
+    _fog_tween = create_tween()
+    _fog_tween.tween_method(_fog_set_alpha, 0.0, FOG_ALPHA_MAX, 0.8)
 
-	_fog_radius_tween = create_tween()
-	var current_radius = fog_mat.get_shader_parameter("radius_px") as float
-	var display_score: int = int(score / SCORE_MODIFIER)
-	var t: float = clamp(float(display_score) / float(FOG_SCORE_FULL), 0.0, 1.0)
-	var target_radius: float = lerp(FOG_RADIUS_MAX, FOG_RADIUS_MIN, t)
+    _fog_radius_tween = create_tween()
+    var current_radius = fog_mat.get_shader_parameter("radius_px") as float
+    var display_score: int = int(score / SCORE_MODIFIER)
+    var t: float = clamp(float(display_score) / float(FOG_SCORE_FULL), 0.0, 1.0)
+    var target_radius: float = lerp(FOG_RADIUS_MAX, FOG_RADIUS_MIN, t)
 
-	_fog_radius_tween.tween_method(
-		func(r): fog_mat.set_shader_parameter("radius_px", r),
-		current_radius,
-		target_radius,
-		1.0
-	)
+    _fog_radius_tween.tween_method(
+        func(r): fog_mat.set_shader_parameter("radius_px", r),
+        current_radius,
+        target_radius,
+        1.0
+    )
+
+
+# ----- Best Score Management -----
+func load_best_score() -> int:
+    var save_file = FileAccess.open("user://best_score.save", FileAccess.READ)
+    if save_file:
+        var best_score = save_file.get_32()
+        save_file.close()
+        return best_score
+    return 0
+
+# ----- Explosion Effects -----
+func _create_explosion(type: String, pos: Vector2, scale_factor: float = 1.0) -> void:
+    var explosion = explosion_scene.instantiate()
+    add_child(explosion)
+    explosion.play_explosion(type, pos, scale_factor)

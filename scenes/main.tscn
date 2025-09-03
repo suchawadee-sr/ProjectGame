@@ -6,7 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://cui36t063xpf6" path="res://scenes/ground.tscn" id="3_tipki"]
 [ext_resource type="Shader" uid="uid://bq6x0pdo4ap8" path="res://scenes/main.gdshader" id="5_04qun"]
 [ext_resource type="PackedScene" uid="uid://lyf4a3sklk1o" path="res://scenes/hud.tscn" id="5_cgpie"]
-[ext_resource type="PackedScene" uid="uid://lotwuige1aee" path="res://scenes/game_over.tscn" id="6_6n2u1"]
+[ext_resource type="PackedScene" uid="uid://cetjasrpuvdrf" path="res://scenes/GameOver.tscn" id="8_tipki"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_igwhu"]
 shader = ExtResource("5_04qun")
@@ -27,9 +27,6 @@ position = Vector2(70, 491)
 [node name="Camera2D" type="Camera2D" parent="."]
 position = Vector2(576, 324)
 
-[node name="GameOver" parent="." instance=ExtResource("6_6n2u1")]
-process_mode = 2
-
 [node name="FogLayer" type="CanvasLayer" parent="."]
 layer = 2
 
@@ -47,3 +44,9 @@ color = Color(0, 0, 0, 1)
 [node name="Ground" parent="." instance=ExtResource("3_tipki")]
 
 [node name="Items" type="Node2D" parent="."]
+
+[node name="GameOver" parent="." instance=ExtResource("8_tipki")]
+offset_left = 5.0
+offset_top = -2.0
+offset_right = 5.0
+offset_bottom = -2.0
