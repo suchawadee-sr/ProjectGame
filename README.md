@@ -48,6 +48,7 @@ link
 ## ตัวละคร
 ---
 มนุษย์หมาป่า ชื่อ ลูปิน
+![WOLF](https://img.craftpix.net/2023/08/Free-Werewolf-Sprite-Sheets-Pixel-Art.gif)
 
 ## Credits
 ---
