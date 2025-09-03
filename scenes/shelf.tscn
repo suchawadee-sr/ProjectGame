@@ -1,0 +1,18 @@
+[gd_scene load_steps=3 format=3 uid="uid://dmilw6tkta41b"]
+
+[ext_resource type="Texture2D" uid="uid://3w7q3lu5nago" path="res://assets/img/obstacles/shelf.png" id="1_eyi4x"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_x8522"]
+size = Vector2(132, 128)
+
+[node name="shelf" type="Area2D"]
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture_filter = 1
+position = Vector2(0, -54)
+scale = Vector2(3.04688, 3.04688)
+texture = ExtResource("1_eyi4x")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(-2, -22)
+shape = SubResource("RectangleShape2D_x8522")

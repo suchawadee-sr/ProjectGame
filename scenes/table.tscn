@@ -1,0 +1,18 @@
+[gd_scene load_steps=3 format=3 uid="uid://ulf2tig0dhh0"]
+
+[ext_resource type="Texture2D" uid="uid://b6wyngshauftk" path="res://assets/img/obstacles/table.png" id="1_eotx8"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_x8522"]
+size = Vector2(114, 85)
+
+[node name="table" type="Area2D"]
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture_filter = 1
+position = Vector2(0, -17)
+scale = Vector2(3, 3)
+texture = ExtResource("1_eotx8")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(-1, -0.5)
+shape = SubResource("RectangleShape2D_x8522")
