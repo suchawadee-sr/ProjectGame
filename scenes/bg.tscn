@@ -1,45 +1,66 @@
-[gd_scene load_steps=6 format=3 uid="uid://bpkphu8qj137m"]
+[gd_scene load_steps=7 format=3 uid="uid://bpkphu8qj137m"]
 
-[ext_resource type="Texture2D" uid="uid://7q3rtox00xwp" path="res://assets/img/background/plx-1.png" id="1_5v8qh"]
-[ext_resource type="Texture2D" uid="uid://dilgqmg5rasoi" path="res://assets/img/background/plx-2.png" id="2_3jfie"]
-[ext_resource type="Texture2D" uid="uid://ds3jxwgfj8c7f" path="res://assets/img/background/plx-3.png" id="3_fpq7s"]
-[ext_resource type="Texture2D" uid="uid://cpv06mbqdl3sd" path="res://assets/img/background/plx-4.png" id="4_3lhbs"]
-[ext_resource type="Texture2D" uid="uid://6ir0idbo006l" path="res://assets/img/background/plx-5.png" id="5_xlcew"]
+[ext_resource type="Texture2D" uid="uid://f01xb1s6fxs8" path="res://Pixel-Art-Battlegrounds/PNG/Battleground2/Pale/bg.png" id="1_r6ch1"]
+[ext_resource type="Texture2D" uid="uid://dulxa202321n5" path="res://Pixel-Art-Battlegrounds/PNG/Battleground2/Pale/mountaims.png" id="2_4la4c"]
+[ext_resource type="Texture2D" uid="uid://dtckrtnv0u6m0" path="res://Pixel-Art-Battlegrounds/PNG/Battleground2/Pale/wall@windows.png" id="3_j28yk"]
+[ext_resource type="Texture2D" uid="uid://eordillu83eq" path="res://Pixel-Art-Battlegrounds/PNG/Battleground2/Pale/columns&falgs.png" id="5_u8vpk"]
+[ext_resource type="Texture2D" uid="uid://b6lr0oel0nwhl" path="res://Pixel-Art-Battlegrounds/PNG/Battleground2/Pale/dragon.png" id="6_4183b"]
+[ext_resource type="Texture2D" uid="uid://bf3mj7vgl86d1" path="res://Pixel-Art-Battlegrounds/PNG/Battleground2/Pale/candeliar.png" id="7_6y8fd"]
 
 [node name="Bg" type="ParallaxBackground"]
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-texture = ExtResource("1_5v8qh")
+scale = Vector2(0.602083, 0.6)
+texture = ExtResource("1_r6ch1")
 centered = false
 
 [node name="ParallaxLayer" type="ParallaxLayer" parent="."]
-motion_scale = Vector2(0.6, 1)
+motion_scale = Vector2(0.5, 0.833)
 motion_mirroring = Vector2(1152, 0)
 
 [node name="Sprite2D" type="Sprite2D" parent="ParallaxLayer"]
-texture = ExtResource("2_3jfie")
-centered = false
-
-[node name="ParallaxLayer2" type="ParallaxLayer" parent="."]
-motion_scale = Vector2(0.7, 1)
-motion_mirroring = Vector2(1152, 0)
-
-[node name="Sprite2D" type="Sprite2D" parent="ParallaxLayer2"]
-texture = ExtResource("3_fpq7s")
+position = Vector2(0, -1)
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("2_4la4c")
 centered = false
 
 [node name="ParallaxLayer3" type="ParallaxLayer" parent="."]
-motion_scale = Vector2(0.8, 1)
+motion_scale = Vector2(0.6, 1)
 motion_mirroring = Vector2(1152, 0)
 
 [node name="Sprite2D" type="Sprite2D" parent="ParallaxLayer3"]
-texture = ExtResource("4_3lhbs")
+position = Vector2(0, -1)
+scale = Vector2(0.600521, 0.886111)
+texture = ExtResource("3_j28yk")
 centered = false
 
 [node name="ParallaxLayer4" type="ParallaxLayer" parent="."]
-motion_scale = Vector2(0.9, 1)
+motion_scale = Vector2(0.7, 1.166)
 motion_mirroring = Vector2(1152, 0)
 
 [node name="Sprite2D" type="Sprite2D" parent="ParallaxLayer4"]
-texture = ExtResource("5_xlcew")
+scale = Vector2(0.6, 0.92037)
+texture = ExtResource("5_u8vpk")
+centered = false
+
+[node name="ParallaxLayer2" type="ParallaxLayer" parent="."]
+visible = false
+motion_scale = Vector2(0.8, 1.333)
+motion_mirroring = Vector2(1152, 0)
+
+[node name="Sprite2D" type="Sprite2D" parent="ParallaxLayer2"]
+visible = false
+position = Vector2(6, -3)
+scale = Vector2(0.598958, 0.691667)
+texture = ExtResource("7_6y8fd")
+centered = false
+
+[node name="ParallaxLayer5" type="ParallaxLayer" parent="."]
+motion_scale = Vector2(0.7, 0.7)
+motion_mirroring = Vector2(1152, 0)
+
+[node name="Sprite2D" type="Sprite2D" parent="ParallaxLayer5"]
+position = Vector2(31, 130)
+scale = Vector2(0.592708, 0.587037)
+texture = ExtResource("6_4183b")
 centered = false
