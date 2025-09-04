@@ -2,11 +2,11 @@
 
 [ext_resource type="Texture2D" uid="uid://c8r0qr5150can" path="res://assets/img/mort.png" id="1_0g0lj"]
 [ext_resource type="Script" uid="uid://laenb1kbne3w" path="res://scenes/dino.gd" id="1_1stpw"]
-[ext_resource type="AudioStream" path="res://assets/sound/jump.wav" id="2_60go1"]
 [ext_resource type="Texture2D" uid="uid://qtapksnuoa47" path="res://Character/Black_Werewolf/Run.png" id="2_mdm24"]
 [ext_resource type="Texture2D" uid="uid://c16abd5vv2cms" path="res://Character/Black_Werewolf/Idle.png" id="3_u8i2d"]
 [ext_resource type="Texture2D" uid="uid://j037ripilupt" path="res://Character/Black_Werewolf/Jump.png" id="4_qwosw"]
 [ext_resource type="Texture2D" uid="uid://0dfjg50x7kqx" path="res://Character/Black_Werewolf/walk.png" id="5_x81ab"]
+[ext_resource type="AudioStream" uid="uid://cl1t7431wk8oc" path="res://assets/sound/jump.mp3" id="6_mdm24"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_i6h6m"]
 atlas = ExtResource("2_mdm24")
@@ -457,7 +457,6 @@ speed_scale = 0.8
 
 [node name="RunCol" type="CollisionShape2D" parent="."]
 position = Vector2(3.95, -1.975)
-scale = Vector2(1, 1)
 shape = SubResource("RectangleShape2D_whux2")
 
 [node name="DuckCol" type="CollisionShape2D" parent="."]
@@ -466,7 +465,7 @@ scale = Vector2(0.563756, -1.80413)
 shape = SubResource("RectangleShape2D_t1b5m")
 
 [node name="JumpSound" type="AudioStreamPlayer" parent="."]
-stream = ExtResource("2_60go1")
+stream = ExtResource("6_mdm24")
 
 [node name="AnimatedSprite2Dold" type="AnimatedSprite2D" parent="."]
 visible = false

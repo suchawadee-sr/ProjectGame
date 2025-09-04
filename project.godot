@@ -13,7 +13,6 @@ config_version=5
 config/name="dino_run_tut"
 run/main_scene="res://scenes/MainMenu_Fixed.tscn"
 config/features=PackedStringArray("4.4", "Forward Plus")
-config/icon=""
 
 [input]
 
