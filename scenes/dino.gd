@@ -13,7 +13,10 @@ func _physics_process(delta):
 			$RunCol.disabled = false
 			if Input.is_action_pressed("ui_accept"):
 				velocity.y = JUMP_SPEED
-				#$JumpSound.play()
+				# Play jump sound through main script
+				var main = get_parent()
+				if main and main.has_method("_play_jump_sound"):
+					main._play_jump_sound()
 			elif Input.is_action_pressed("ui_down"):
 				$AnimatedSprite2D.play("duck")
 				$RunCol.disabled = true

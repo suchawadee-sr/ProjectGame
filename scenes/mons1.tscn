@@ -1,0 +1,18 @@
+[gd_scene load_steps=3 format=3 uid="uid://wbgccb7k3uho"]
+
+[ext_resource type="Texture2D" uid="uid://dw627phm3k4cw" path="res://assets/img/obstacles/mons1.png" id="1_wlovn"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_mjyeh"]
+size = Vector2(40.118, 80.2478)
+
+[node name="mons1" type="Area2D"]
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture_filter = 1
+scale = Vector2(1.583, 1.583)
+texture = ExtResource("1_wlovn")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(4, 8.99)
+scale = Vector2(1.695, 1.695)
+shape = SubResource("RectangleShape2D_mjyeh")

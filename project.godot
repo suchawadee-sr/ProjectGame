@@ -11,9 +11,9 @@ config_version=5
 [application]
 
 config/name="dino_run_tut"
-run/main_scene="res://scenes/MainMenu.tscn"
+run/main_scene="res://scenes/MainMenu_Fixed.tscn"
 config/features=PackedStringArray("4.4", "Forward Plus")
-config/icon="res://icon.svg"
+config/icon=""
 
 [input]
 

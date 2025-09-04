@@ -2,7 +2,7 @@
 
 [ext_resource type="Texture2D" uid="uid://c8r0qr5150can" path="res://assets/img/mort.png" id="1_0g0lj"]
 [ext_resource type="Script" uid="uid://laenb1kbne3w" path="res://scenes/dino.gd" id="1_1stpw"]
-[ext_resource type="AudioStream" uid="uid://d0hfpyh1btqr7" path="res://assets/sound/jump.wav" id="2_60go1"]
+[ext_resource type="AudioStream" path="res://assets/sound/jump.wav" id="2_60go1"]
 [ext_resource type="Texture2D" uid="uid://qtapksnuoa47" path="res://Character/Black_Werewolf/Run.png" id="2_mdm24"]
 [ext_resource type="Texture2D" uid="uid://c16abd5vv2cms" path="res://Character/Black_Werewolf/Idle.png" id="3_u8i2d"]
 [ext_resource type="Texture2D" uid="uid://j037ripilupt" path="res://Character/Black_Werewolf/Jump.png" id="4_qwosw"]
@@ -292,7 +292,7 @@ animations = [{
 }]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_whux2"]
-size = Vector2(10.3, 12.15)
+size = Vector2(10.3, 13.45)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_t1b5m"]
 size = Vector2(22.3501, 4.57285)
@@ -446,8 +446,8 @@ script = ExtResource("1_1stpw")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 texture_filter = 1
-position = Vector2(3, -5)
-scale = Vector2(0.15, 0.15)
+position = Vector2(1.7, -6.3)
+scale = Vector2(0.170313, 0.170313)
 sprite_frames = SubResource("SpriteFrames_i6e61")
 animation = &"run"
 autoplay = "idle"
@@ -456,7 +456,8 @@ frame_progress = 0.299832
 speed_scale = 0.8
 
 [node name="RunCol" type="CollisionShape2D" parent="."]
-position = Vector2(3.95, -1.325)
+position = Vector2(3.95, -1.975)
+scale = Vector2(1, 1)
 shape = SubResource("RectangleShape2D_whux2")
 
 [node name="DuckCol" type="CollisionShape2D" parent="."]

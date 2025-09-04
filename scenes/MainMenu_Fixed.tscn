@@ -1,0 +1,90 @@
+[gd_scene load_steps=4 format=3 uid="uid://c5npwvnawf3pj"]
+
+[ext_resource type="Script" uid="uid://dr4nc3qm0nops" path="res://scenes/MainMenu_Working.gd" id="1_mainmenu"]
+[ext_resource type="FontFile" uid="uid://dbbmlg30b2vus" path="res://assets/fonts/retro.ttf" id="2_retro"]
+[ext_resource type="Texture2D" uid="uid://dgddty81lvg5" path="res://assets/img/background/Game.png" id="3_background"]
+
+[node name="MainMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_mainmenu")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.1, 0.2, 0.3, 1)
+
+[node name="Game" type="Sprite2D" parent="."]
+modulate = Color(1, 1, 1, 0.3)
+position = Vector2(572, 323)
+scale = Vector2(1.03825, 1.11946)
+texture = ExtResource("3_background")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -200.0
+offset_right = 200.0
+offset_bottom = 200.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Title" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_retro")
+theme_override_font_sizes/font_size = 32
+text = "Lonely Wolf In Multiverse"
+horizontal_alignment = 1
+
+[node name="Spacer1" type="Control" parent="VBoxContainer"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+
+[node name="PlayButton" type="Button" parent="VBoxContainer"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_retro")
+text = "PLAY"
+
+[node name="Spacer2" type="Control" parent="VBoxContainer"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+
+[node name="InstructionsButton" type="Button" parent="VBoxContainer"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_retro")
+text = "INSTRUCTIONS"
+
+[node name="Spacer3" type="Control" parent="VBoxContainer"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+
+[node name="QuitButton" type="Button" parent="VBoxContainer"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_retro")
+text = "QUIT"
+
+[node name="Instructions" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_fonts/font = ExtResource("2_retro")
+theme_override_font_sizes/font_size = 18
+text = "press SPACE to Jump
+press ⬇ to crouch
+Collect Coins"
+horizontal_alignment = 1

@@ -9,6 +9,16 @@ var coin_scene   = preload("res://scenes/Coin.tscn")
 var explosion_scene = preload("res://scenes/Explosion.tscn")
 var game_over_scene = preload("res://scenes/GameOver.tscn")
 
+# ====== AUDIO ======
+var background_music: AudioStreamPlayer
+var coin_sound: AudioStreamPlayer
+var explosion_sound: AudioStreamPlayer
+var gameover_sound: AudioStreamPlayer
+var jump_sound: AudioStreamPlayer
+var transition_sound: AudioStreamPlayer
+var immortal_sound: AudioStreamPlayer
+var click_sound: AudioStreamPlayer
+
 # Background transition system
 @onready var bg2_scene = preload("res://scenes/bg2.tscn")
 @onready var ground2_scene = preload("res://scenes/ground2.tscn")
@@ -16,10 +26,21 @@ var game_over_scene = preload("res://scenes/GameOver.tscn")
 @onready var ground3_scene = preload("res://scenes/ground3.tscn")
 @onready var bg4_scene = preload("res://scenes/bg4.tscn")
 @onready var ground4_scene = preload("res://scenes/ground4.tscn")
-var obstacle_types := [stump_scene, rock_scene, barrel_scene]
+# Stage-specific obstacle types
+var stage1_obstacles := [preload("res://scenes/barrel2.tscn"), preload("res://scenes/shelf.tscn"), preload("res://scenes/table.tscn")]
+var stage2_obstacles := [rock_scene, stump_scene, barrel_scene]
+var stage3_obstacles := [preload("res://scenes/bush.tscn"), preload("res://scenes/flower.tscn"), preload("res://scenes/rock2.tscn")]
+var stage4_obstacles := [preload("res://scenes/mons1.tscn"), preload("res://scenes/mons2.tscn"), preload("res://scenes/mons3.tscn")]
+
+# Stage-specific flying objects
+var stage1_flying := preload("res://scenes/bat.tscn")
+var stage2_flying := preload("res://scenes/bird.tscn")
+var stage3_flying := preload("res://scenes/fairy.tscn")
+var stage4_flying := preload("res://scenes/vamp.tscn")
+
 var bird_heights: Array[int] = [200, 390]
 var current_bg_stage: int = 1
-var bg_transition_scores: Array[int] = [2500, 5000, 7500]  # Scores for stage 2, 3, 4
+var bg_transition_distances: Array[int] = [1500, 3000, 4500]  # Distance in meters for stage 2, 3, 4
 var bg_transitions_completed: Array[bool] = [false, false, false]  # For stages 2, 3, 4
 var is_transitioning: bool = false
 
@@ -35,9 +56,9 @@ const SCORE_MODIFIER: int = 10
 var high_score: int
 
 var speed: float
-const START_SPEED: float = 450.0
-const MAX_SPEED: int = 900
-const SPEED_MODIFIER: int = 1200
+const START_SPEED: float = 600.0
+const MAX_SPEED: int = 1200
+const SPEED_MODIFIER: int = 800
 
 var difficulty: int
 const MAX_DIFFICULTY: int = 2
@@ -70,7 +91,7 @@ var last_spawn_type: String = ""   # "obs" | "bird" | ""
 # ====== INVINCIBLE ======
 var invincible: bool = false
 var inv_end_time: float = 0.0
-var next_invincible_score: int = 500
+var next_invincible_score: int = 1000
 const INVINCIBLE_DURATION: float = 5.0
 const HIT_REWARD_POINTS: int = 50
 const HIT_COOLDOWN: float = 0.35
@@ -150,6 +171,7 @@ var combo_timer: float = 0.0
 const COMBO_RESET_TIME: float = 2.0
 var last_dodge_time: float = 0.0
 
+
 # ====== PERFECT DODGE ======
 const PERFECT_DODGE_X_WINDOW: float = 44.0
 const PERFECT_DODGE_Y_TOL_GROUND: float = 16.0
@@ -170,6 +192,9 @@ func _ready() -> void:
 		else:
 			ground_height = 100  # fallback value
 
+	# Load high score from save file
+	high_score = load_best_score()
+
 	# Setup GameOver UI with CanvasLayer
 	var canvas_layer = CanvasLayer.new()
 	canvas_layer.layer = 100
@@ -189,6 +214,7 @@ func _ready() -> void:
 
 	_setup_particles()
 	_setup_combo_ui()
+	_setup_background_music()
 	new_game()
 
 
@@ -211,7 +237,7 @@ func new_game() -> void:
 	get_tree().paused = false
 	difficulty = 0
 	invincible = false
-	next_invincible_score = 500
+	next_invincible_score = 1000
 	_set_glow(false)
 
 	# counters
@@ -341,9 +367,9 @@ func _process(delta: float) -> void:
 		_update_dust_particles(delta)
 		_update_combo_system(delta)
 
-		# trigger invincible (+500 display score)
+		# trigger invincible (+1000 display score)
 		if int(score / SCORE_MODIFIER) >= next_invincible_score:
-			next_invincible_score += 500
+			next_invincible_score += 1000
 			_start_invincible(INVINCIBLE_DURATION)
 
 		# invincible countdown
@@ -384,6 +410,13 @@ func _process(delta: float) -> void:
 		if Input.is_action_pressed("ui_accept"):
 			game_running = true
 			_hud.get_node("StartLabel").hide()
+			# Delay background music to avoid audio chaos
+			await get_tree().create_timer(0.3).timeout
+			_play_background_music()
+		# Test audio with T key
+		if Input.is_action_just_pressed("ui_select"):  # T key
+			print("Testing audio...")
+			_test_audio_system()
 
 
 # ---------------------------------------------------------
@@ -501,12 +534,222 @@ func _setup_combo_ui() -> void:
 	_hud.add_child(combo_label)
 
 
+# ---------------------------------------------------------
+# BACKGROUND MUSIC SYSTEM
+# ---------------------------------------------------------
+func _setup_background_music() -> void:
+	# Setup background music
+	background_music = AudioStreamPlayer.new()
+	background_music.name = "BackgroundMusic"
+	var bg_stream = load("res://assets/sound/background_sound.mp3")
+	if bg_stream:
+		background_music.stream = bg_stream
+		background_music.volume_db = 0.0  # Full volume for testing
+		background_music.autoplay = false
+		add_child(background_music)
+		print("Background music loaded successfully")
+	else:
+		print("Failed to load background music")
+	
+	# Setup coin pickup sound
+	coin_sound = AudioStreamPlayer.new()
+	coin_sound.name = "CoinSound"
+	var coin_stream = load("res://assets/sound/pickupCoin.wav")
+	if coin_stream:
+		coin_sound.stream = coin_stream
+		coin_sound.volume_db = 0.0  # Full volume for testing
+		coin_sound.autoplay = false
+		add_child(coin_sound)
+		print("Coin sound loaded successfully")
+	else:
+		print("Failed to load coin sound")
+	
+	# Setup explosion sound
+	explosion_sound = AudioStreamPlayer.new()
+	explosion_sound.name = "ExplosionSound"
+	var explosion_stream = load("res://assets/sound/explosion.wav")
+	if explosion_stream:
+		explosion_sound.stream = explosion_stream
+		explosion_sound.volume_db = 0.0  # Full volume for testing
+		explosion_sound.autoplay = false
+		add_child(explosion_sound)
+		print("Explosion sound loaded successfully")
+	else:
+		print("Failed to load explosion sound")
+	
+	# Setup game over sound
+	gameover_sound = AudioStreamPlayer.new()
+	gameover_sound.name = "GameOverSound"
+	gameover_sound.process_mode = Node.PROCESS_MODE_ALWAYS  # Continue playing when paused
+	var gameover_stream = load("res://assets/sound/gameover.mp3")
+	if gameover_stream:
+		gameover_sound.stream = gameover_stream
+		gameover_sound.volume_db = 0.0  # Full volume for testing
+		gameover_sound.autoplay = false
+		add_child(gameover_sound)
+		print("Game over sound loaded successfully")
+	else:
+		print("Failed to load game over sound")
+	
+	# Setup jump sound
+	jump_sound = AudioStreamPlayer.new()
+	jump_sound.name = "JumpSound"
+	var jump_stream = load("res://assets/sound/jump.mp3")
+	if jump_stream:
+		jump_sound.stream = jump_stream
+		jump_sound.volume_db = 0.0
+		jump_sound.autoplay = false
+		add_child(jump_sound)
+		print("Jump sound loaded successfully")
+	else:
+		print("Failed to load jump sound")
+	
+	# Setup transition sound
+	transition_sound = AudioStreamPlayer.new()
+	transition_sound.name = "TransitionSound"
+	var transition_stream = load("res://assets/sound/transition.mp3")
+	if transition_stream:
+		transition_sound.stream = transition_stream
+		transition_sound.volume_db = 0.0  # Full volume for testing
+		transition_sound.autoplay = false
+		add_child(transition_sound)
+		print("Transition sound loaded successfully")
+	else:
+		print("Failed to load transition sound")
+	
+	# Setup immortal sound
+	immortal_sound = AudioStreamPlayer.new()
+	immortal_sound.name = "ImmortalSound"
+	immortal_sound.stream = load("res://assets/sound/immortal.mp3")
+	immortal_sound.volume_db = 0.0
+	add_child(immortal_sound)
+	print("Immortal sound loaded: ", immortal_sound.stream != null)
+	
+	# Setup click sound
+	click_sound = AudioStreamPlayer.new()
+	click_sound.name = "ClickSound"
+	click_sound.stream = load("res://assets/sound/click.mp3")
+	click_sound.volume_db = -8.0  # Much quieter by default
+	add_child(click_sound)
+	print("Click sound loaded: ", click_sound.stream != null)
+
+
+func _play_background_music() -> void:
+	if background_music and not background_music.playing:
+		background_music.volume_db = -20.0  # Start quieter
+		background_music.play()
+		print("Playing background music")
+		# Fade in background music
+		var tween = create_tween()
+		tween.tween_property(background_music, "volume_db", -10.0, 1.0)
+	else:
+		print("Background music not available or already playing")
+
+
+func _stop_background_music() -> void:
+	if background_music and background_music.playing:
+		background_music.stop()
+		print("Stopped background music")
+
+
+func _play_coin_sound() -> void:
+	if coin_sound:
+		coin_sound.play()
+		print("Playing coin sound")
+	else:
+		print("Coin sound not available")
+
+
+func _play_explosion_sound() -> void:
+	if explosion_sound:
+		explosion_sound.play()
+		print("Playing explosion sound")
+	else:
+		print("Explosion sound not available")
+
+
+func _play_gameover_sound() -> void:
+	if gameover_sound:
+		gameover_sound.play()
+		print("Playing game over sound")
+	else:
+		print("Game over sound not available")
+
+
+func _play_jump_sound() -> void:
+	if jump_sound:
+		jump_sound.play()
+		print("Playing jump sound - Stream: ", jump_sound.stream)
+		print("Jump sound volume: ", jump_sound.volume_db)
+	else:
+		print("Jump sound not available")
+
+
+func _play_transition_sound() -> void:
+	if transition_sound:
+		transition_sound.play()
+		print("Playing transition sound")
+	else:
+		print("Transition sound not available")
+
+
+func _play_immortal_sound() -> void:
+	if immortal_sound:
+		immortal_sound.play()
+		print("Playing immortal sound")
+	else:
+		print("Immortal sound not available")
+
+
+func _play_click_sound() -> void:
+	if click_sound:
+		click_sound.volume_db = -5.0  # Quieter click sound
+		click_sound.play()
+		print("Playing click sound")
+	else:
+		print("Click sound not available")
+
+
+func _test_audio_system() -> void:
+	print("=== AUDIO SYSTEM TEST ===")
+	print("Master volume: ", AudioServer.get_bus_volume_db(0))
+	print("Audio driver: ", AudioServer.get_driver_name())
+	print("Output device: ", AudioServer.get_output_device())
+	
+	# Test each sound
+	if background_music:
+		print("Background music stream: ", background_music.stream)
+		print("Background music volume: ", background_music.volume_db)
+		background_music.volume_db = 10.0  # Very loud
+		background_music.play()
+		print("Playing background music at max volume")
+	
+	if coin_sound:
+		await get_tree().create_timer(1.0).timeout
+		coin_sound.volume_db = 10.0
+		coin_sound.play()
+		print("Playing coin sound at max volume")
+	
+	if jump_sound:
+		await get_tree().create_timer(1.0).timeout
+		jump_sound.volume_db = 10.0
+		jump_sound.play()
+		print("Playing jump sound at max volume")
+	
+	if click_sound:
+		await get_tree().create_timer(1.0).timeout
+		click_sound.volume_db = 10.0
+		click_sound.play()
+		print("Playing click sound at max volume")
+
+
 func _update_combo_system(_delta: float) -> void:
 	_check_obstacle_dodge()
 	if combo_count > 0 and (_now_sec() - last_dodge_time) > COMBO_RESET_TIME:
 		if combo_count > max_combo_run: max_combo_run = combo_count
 		combo_count = 0
 		_update_combo_ui()
+		_update_stats_hud()  # Update multiplier when combo resets
 
 
 func _check_obstacle_dodge() -> void:
@@ -661,17 +904,21 @@ func generate_obs() -> void:
 	var spawn_bird_only: bool = randf() < 0.30
 
 	if spawn_bird_only and difficulty >= 1:
-		var bird = bird_scene.instantiate()
-		bird.set_meta("type", "bird")
+		# Get stage-specific flying object
+		var flying_scene = _get_current_flying_scene()
+		var flying_obj = flying_scene.instantiate()
+		flying_obj.set_meta("type", "bird")
 		var bx: int = start_x
 		if last_spawn_type == "obs":
 			bx = max(bx, int(last_spawn_right) + MIN_GAP_BIRD_AFTER_OBS)
 		var by: int = bird_heights[rng.randi_range(0, bird_heights.size() - 1)]
-		add_obs(bird, bx, by)
+		add_obs(flying_obj, bx, by)
 		last_spawn_right = float(bx + 48)
 		last_spawn_type  = "bird"
 	else:
-		var obs_type = obstacle_types[randi() % obstacle_types.size()]
+		# Get stage-specific ground obstacles
+		var current_obstacles = _get_current_obstacles()
+		var obs_type = current_obstacles[randi() % current_obstacles.size()]
 		var obs = obs_type.instantiate()
 		obs.set_meta("type", "ground")
 
@@ -690,6 +937,36 @@ func generate_obs() -> void:
 		last_spawn_type  = "obs"
 
 	next_obs_spawn_x = int(last_spawn_right) + randi_range(OBS_GAP_MIN, OBS_GAP_MAX)
+
+
+# Get current stage obstacles
+func _get_current_obstacles() -> Array:
+	match current_bg_stage:
+		1:
+			return stage1_obstacles
+		2:
+			return stage2_obstacles
+		3:
+			return stage3_obstacles
+		4:
+			return stage4_obstacles
+		_:
+			return stage1_obstacles  # fallback
+
+
+# Get current stage flying object
+func _get_current_flying_scene() -> PackedScene:
+	match current_bg_stage:
+		1:
+			return stage1_flying
+		2:
+			return stage2_flying
+		3:
+			return stage3_flying
+		4:
+			return stage4_flying
+		_:
+			return stage1_flying  # fallback
 
 
 func add_obs(obs, x: int, y: int) -> void:
@@ -714,10 +991,12 @@ func hit_obs(body, obs):
 		_last_hit_time = now
 		add_score_points(HIT_REWARD_POINTS, obs.global_position)
 		shake_screen(8.0, 0.3)
+		_play_explosion_sound()
 		_create_explosion("small", obs.global_position, 1.5)
 		obstacles_destroyed += 1
 		remove_obs(obs)
 	else:
+		_play_explosion_sound()
 		shake_screen(15.0, 0.5)
 		game_over()
 
@@ -728,6 +1007,7 @@ func hit_obs(body, obs):
 func show_score() -> void:
 	var display_score: int = int(score / SCORE_MODIFIER)
 	if _lb_score: _lb_score.text = "SCORE: " + str(display_score)
+	if _lb_high: _lb_high.text = "HIGH SCORE: " + str(high_score / SCORE_MODIFIER)
 
 
 func check_high_score() -> void:
@@ -744,8 +1024,13 @@ func adjust_difficulty() -> void:
 
 func game_over() -> void:
 	check_high_score()
-	get_tree().paused = true
+	_stop_background_music()
+	_play_gameover_sound()
 	game_running = false
+	
+	# Wait for game over sound to play before pausing
+	await get_tree().create_timer(0.5).timeout
+	get_tree().paused = true
 	if game_over_ui:
 		# Prepare game data for GameOver UI
 		var game_data = {
@@ -800,6 +1085,7 @@ func _spawn_next_coin() -> void:
 
 func _on_coin_collected(coin_pos: Vector2) -> void:
 	_play_coin_particle(coin_pos)
+	_play_coin_sound()
 	shake_screen(3.0, 0.15)
 
 
@@ -810,6 +1096,7 @@ func _start_invincible(sec: float) -> void:
 	invincible   = true
 	inv_end_time = _now_sec() + sec
 
+	_play_immortal_sound()
 	_set_glow(true)
 	_fog_hide_for_invincible()
 
@@ -1057,13 +1344,13 @@ func _check_background_transition() -> void:
 	if is_transitioning:
 		return
 		
-	var display_score: int = int(score / SCORE_MODIFIER)
+	var current_distance: int = int(distance_traveled)
 	
-	for i in range(bg_transition_scores.size()):
+	for i in range(bg_transition_distances.size()):
 		var target_stage = i + 2
-		var required_score = bg_transition_scores[i]
+		var required_distance = bg_transition_distances[i]
 		
-		if display_score >= required_score and current_bg_stage == target_stage - 1 and not bg_transitions_completed[i]:
+		if current_distance >= required_distance and current_bg_stage == target_stage - 1 and not bg_transitions_completed[i]:
 			is_transitioning = true
 			match target_stage:
 				2:
@@ -1075,7 +1362,7 @@ func _check_background_transition() -> void:
 			
 			bg_transitions_completed[i] = true
 			current_bg_stage = target_stage
-			print("Background transitioned to stage ", target_stage, " at score: ", display_score)
+			print("Background transitioned to stage ", target_stage, " at distance: ", current_distance, "m")
 			break
 
 func _transition_to_stage(stage: int, stage_text: String) -> void:
@@ -1083,11 +1370,11 @@ func _transition_to_stage(stage: int, stage_text: String) -> void:
 	print("Transitioning to stage: ", stage)
 	print("Current dino position: ", $Dino.global_position)
 	
-	# Create fade in effect first
-	_create_fade_in_effect()
+	# Play transition sound
+	_play_transition_sound()
 	
-	# Wait for fade in to complete, then change background
-	await get_tree().create_timer(0.8).timeout
+	# Show stage text immediately without fade
+	_show_stage_text(stage_text)
 	
 	print("Before removing current bg/ground:")
 	print("- Current ground nodes in scene:")
@@ -1155,13 +1442,10 @@ func _transition_to_stage(stage: int, stage_text: String) -> void:
 		print("- Ground collision position: ", collision_shape.position)
 		print("- Ground collision shape size: ", collision_shape.shape.size)
 	
-	# Show stage transition text
-	_show_stage_text(stage_text)
+	# Add screen shake for transition effect
+	shake_screen(8.0, 0.5)
 	
-	# Create fade out effect
-	_create_fade_out_effect()
-	
-	print("=== END STAGE TRANSITION DEBUG ===\n")
+	print("=== END STAGE TRANSITION DEBUG ===")
 	
 	# Unlock transitions
 	is_transitioning = false
@@ -1195,26 +1479,7 @@ func _remove_current_bg_ground() -> void:
 		remove_child(node)
 		node.queue_free()
 
-func _create_fade_in_effect() -> void:
-	# Fade to black (preparing for transition)
-	var fade_rect = ColorRect.new()
-	fade_rect.color = Color.BLACK
-	fade_rect.size = Vector2(screen_size)
-	fade_rect.position = Vector2.ZERO
-	fade_rect.modulate.a = 0.0
-	fade_rect.name = "TransitionFade"
-	_hud.add_child(fade_rect)
-	
-	var tween = create_tween()
-	tween.tween_property(fade_rect, "modulate:a", 1.0, 0.8)
-
-func _create_fade_out_effect() -> void:
-	# Fade from black (after transition)
-	var fade_rect = _hud.get_node_or_null("TransitionFade")
-	if fade_rect:
-		var tween = create_tween()
-		tween.tween_property(fade_rect, "modulate:a", 0.0, 0.8)
-		tween.tween_callback(fade_rect.queue_free)
+# Removed fade effects to prevent black screen
 
 func _create_other_transition_effects(stage_text: String) -> void:
 	# Screen shake for dramatic effect

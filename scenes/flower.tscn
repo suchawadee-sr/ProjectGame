@@ -1,0 +1,16 @@
+[gd_scene load_steps=2 format=3 uid="uid://thig3n04tyby"]
+
+[ext_resource type="Texture2D" uid="uid://bmk2ihv8endf2" path="res://assets/img/obstacles/flower1.png" id="1_8x8dx"]
+
+[node name="flower" type="Area2D"]
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture_filter = 1
+position = Vector2(0, 32)
+scale = Vector2(4.16, 4.16)
+texture = ExtResource("1_8x8dx")
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="."]
+position = Vector2(1, 56)
+scale = Vector2(5.045, 4.278)
+polygon = PackedVector2Array(10.6667, -19.2031, 11, -0.800981, 8.33333, 7.91996, -0.333333, 11.2514, -11, -0.0920191, -9.33333, -6.82716, -10, -18.81, 0, -23.5271)

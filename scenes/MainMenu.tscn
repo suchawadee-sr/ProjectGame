@@ -1,6 +1,7 @@
-[gd_scene load_steps=4 format=3 uid="uid://dg7g2x66ibojc"]
+[gd_scene load_steps=5 format=3 uid="uid://dg7g2x66ibojc"]
 
 [ext_resource type="Script" uid="uid://da6fi50svquyc" path="res://scenes/MainMenu.gd" id="1_0x8vq"]
+[ext_resource type="Texture2D" uid="uid://dgddty81lvg5" path="res://assets/img/background/Game.png" id="2_2wh52"]
 [ext_resource type="FontFile" uid="uid://dbbmlg30b2vus" path="res://assets/fonts/retro.ttf" id="2_retro"]
 
 [sub_resource type="Theme" id="Theme_1"]
@@ -16,14 +17,18 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_0x8vq")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Background" type="ColorRect"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
 color = Color(0.1, 0.2, 0.3, 1)
+
+[node name="Game" type="Sprite2D" parent="."]
+position = Vector2(572, 323)
+scale = Vector2(1.03825, 1.11946)
+texture = ExtResource("2_2wh52")
+metadata/_edit_lock_ = true
 
 [node name="VBoxContainer" type="VBoxContainer" parent="."]
 layout_mode = 1
@@ -33,9 +38,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -200.0
-offset_top = -150.0
+offset_top = -186.5
 offset_right = 200.0
-offset_bottom = 150.0
+offset_bottom = 186.5
 grow_horizontal = 2
 grow_vertical = 2
 theme = SubResource("Theme_1")
@@ -59,6 +64,24 @@ text = "PLAY"
 custom_minimum_size = Vector2(0, 20)
 layout_mode = 2
 
+[node name="InstructionsButton" type="Button" parent="VBoxContainer"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+text = "INSTRUCTIONS"
+
+[node name="Spacer2b" type="Control" parent="VBoxContainer"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+
+[node name="SettingsButton" type="Button" parent="VBoxContainer"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+text = "SETTINGS"
+
+[node name="Spacer2c" type="Control" parent="VBoxContainer"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+
 [node name="QuitButton" type="Button" parent="VBoxContainer"]
 custom_minimum_size = Vector2(0, 60)
 layout_mode = 2
@@ -70,8 +93,11 @@ layout_mode = 2
 
 [node name="Instructions" type="Label" parent="VBoxContainer"]
 layout_mode = 2
-text = "input(\"SPACE to Jump\")
-input(\"⬇  to crouch\")
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_shadow_color = Color(1, 1, 0, 1)
+theme_override_font_sizes/font_size = 23
+text = "press SPACE to Jump
+press ⬇  to crouch
 Collect Coins "
 horizontal_alignment = 1
 vertical_alignment = 1

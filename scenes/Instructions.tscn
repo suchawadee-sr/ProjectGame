@@ -1,0 +1,175 @@
+[gd_scene load_steps=3 format=3 uid="uid://cr257bbslufve"]
+
+[ext_resource type="Script" uid="uid://fye6ohbl1o76" path="res://scenes/Instructions.gd" id="1_instructions"]
+[ext_resource type="FontFile" uid="uid://dbbmlg30b2vus" path="res://assets/fonts/retro.ttf" id="2_retro_font"]
+
+[node name="Instructions" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_instructions")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.1, 0.1, 0.15, 1)
+
+[node name="ScrollContainer" type="ScrollContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 50.0
+offset_top = 50.0
+offset_right = -50.0
+offset_bottom = -100.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Title" type="Label" parent="ScrollContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_retro_font")
+theme_override_font_sizes/font_size = 48
+text = "HOW TO PLAY"
+horizontal_alignment = 1
+
+[node name="Spacer1" type="Control" parent="ScrollContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+
+[node name="GameDescription" type="Label" parent="ScrollContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_retro_font")
+theme_override_font_sizes/font_size = 24
+text = "LONELY WOLF IN MULTIVERSE"
+horizontal_alignment = 1
+
+[node name="Spacer2" type="Control" parent="ScrollContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+
+[node name="StoryTitle" type="Label" parent="ScrollContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.7, 0.3, 1)
+theme_override_fonts/font = ExtResource("2_retro_font")
+theme_override_font_sizes/font_size = 32
+text = "STORY"
+horizontal_alignment = 1
+
+[node name="StoryText" type="Label" parent="ScrollContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_retro_font")
+theme_override_font_sizes/font_size = 16
+text = "ในโลกที่เส้นแบ่งระหว่าง ความจริง และ ตำนาน ถูกฉีกขาด \"ลูปิน (Lupin)\" มนุษย์หมาป่าผู้ถูกสาป คือหนึ่งในผู้ถูกดึงเข้าสู่ พหุจักรวาล เขาไม่ใช่เพียงนักรบ… หากแต่เป็น ผู้แสวงหาบ้านเกิดที่หายไป
+
+คำสาปแห่งดวงจันทร์ ทำให้เขาต้อง วิ่งอย่างไม่สิ้นสุด ผ่านห้วงมิตินับไม่ถ้วน ทั้ง วัดอันสงบลึกลับ, ปราสาทต้องสาป, เมืองมนุษย์และวิหารศักดิ์สิทธิ์ 
+
+แต่ละโลกเต็มไปด้วย อุปสรรค ที่หมายจะหยุดเส้นทางของเขา ทว่าก็ยังมี เหรียญแห่งมิติลี้ลับ เกลื่อนอยู่คือกุญแจแห่งการปลดพันธนาการ
+
+เมื่อรวบรวมได้มากพอ เลือดของลูปินจะตื่นขึ้น และเขาจะ กลายร่างเป็น \"อัลฟ่าหมาป่า\" ผู้สามารถพุ่งชนทำลายทุกสิ่งขวางทางได้ในชั่วขณะ
+
+แต่ พหุจักรวาล (Multiverse) นั้นไร้ซึ่งจุดสิ้นสุด… สิ่งเดียวที่ลูปินทำได้ คือ วิ่งต่อไป เพื่อค้นหาความจริงของคำสาป และประตูที่จะนำเขากลับคืนสู่โลกของตนเอง"
+autowrap_mode = 3
+
+[node name="Spacer2b" type="Control" parent="ScrollContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+
+[node name="ControlsTitle" type="Label" parent="ScrollContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.8, 0, 1)
+theme_override_fonts/font = ExtResource("2_retro_font")
+theme_override_font_sizes/font_size = 32
+text = "CONTROLS"
+horizontal_alignment = 1
+
+[node name="ControlsText" type="Label" parent="ScrollContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_retro_font")
+theme_override_font_sizes/font_size = 20
+text = "SPACE / ENTER - Jump
+DOWN ARROW - Duck"
+horizontal_alignment = 1
+
+[node name="Spacer3" type="Control" parent="ScrollContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+
+[node name="GameplayTitle" type="Label" parent="ScrollContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 1, 0.5, 1)
+theme_override_fonts/font = ExtResource("2_retro_font")
+theme_override_font_sizes/font_size = 32
+text = "GAMEPLAY"
+horizontal_alignment = 1
+
+[node name="GameplayText" type="Label" parent="ScrollContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_retro_font")
+theme_override_font_sizes/font_size = 18
+text = "• วิ่งไปข้างหน้าอัตโนมัติ
+• กระโดดหรือก้มหลบสิ่งกีดขวาง
+• เก็บเหรียญเพื่อเพิ่มคะแนน
+• หลบสิ่งกีดขวางติดต่อกันเพื่อ Combo
+• ระยะทาง 1500m, 3000m, 4500m จะเปลี่ยนด่าน
+• ทุก 1000 คะแนนจะได้โหมดอมตะ (ทำลายสิ่งกีดขวางได้)"
+
+[node name="Spacer4" type="Control" parent="ScrollContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+
+[node name="ScoringTitle" type="Label" parent="ScrollContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.5, 1, 1)
+theme_override_fonts/font = ExtResource("2_retro_font")
+theme_override_font_sizes/font_size = 32
+text = "SCORING"
+horizontal_alignment = 1
+
+[node name="ScoringText" type="Label" parent="ScrollContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_retro_font")
+theme_override_font_sizes/font_size = 18
+text = "• ระยะทาง: 1 คะแนน/เมตร
+• เหรียญ: 10 คะแนน/เหรียญ
+• Perfect Dodge: 10 คะแนน
+• ทำลายสิ่งกีดขวาง (โหมดอมตะ): 50 คะแนน
+• Combo Multiplier: 
+  - 5+ Combo: x1.1
+  - 10+ Combo: x1.25
+  - 15+ Combo: x1.5"
+
+[node name="Spacer5" type="Control" parent="ScrollContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+
+[node name="BackButton" type="Button" parent="."]
+custom_minimum_size = Vector2(200, 50)
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -100.0
+offset_top = -70.0
+offset_right = 100.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_fonts/font = ExtResource("2_retro_font")
+theme_override_font_sizes/font_size = 24
+text = "BACK"
+
+[connection signal="pressed" from="BackButton" to="." method="_on_back_button_pressed"]

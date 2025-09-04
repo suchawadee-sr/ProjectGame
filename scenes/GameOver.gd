@@ -10,16 +10,41 @@ extends Control
 @onready var main_menu_button: Button = $MainContainer/ButtonsContainer/MainMenuButton
 
 var game_data = {}
+var click_sound: AudioStreamPlayer
+var background_music: AudioStreamPlayer
 
 func _ready() -> void:
 	# Hide initially
 	visible = false
+	
+	# Setup click sound
+	click_sound = AudioStreamPlayer.new()
+	click_sound.stream = load("res://assets/sound/click.mp3")
+	click_sound.volume_db = 0.0  # Increase volume
+	click_sound.process_mode = Node.PROCESS_MODE_ALWAYS  # Allow sound to play when paused
+	add_child(click_sound)
+	print("GameOver: Click sound setup complete - Volume: ", click_sound.volume_db)
+	
+	# Setup background music
+	background_music = AudioStreamPlayer.new()
+	background_music.stream = load("res://assets/sound/background_menu_gameover.mp3")
+	background_music.volume_db = -10.0  # Quieter background music
+	background_music.process_mode = Node.PROCESS_MODE_ALWAYS  # Allow music to play when paused
+	add_child(background_music)
+	print("GameOver: Background music setup complete")
+	
+	# Connect button signals manually to ensure they work
+	restart_button.pressed.connect(_on_restart_button_pressed)
+	main_menu_button.pressed.connect(_on_main_menu_button_pressed)
 	
 	# Load best score from save file
 	load_best_score()
 
 func show_game_over(data: Dictionary) -> void:
 	game_data = data
+	
+	# Start background music
+	_play_background_music()
 	
 	# Update UI with game data
 	score_value.text = str(data.get("score", 0))
@@ -103,14 +128,53 @@ func save_best_score(score: int) -> void:
 		save_file.close()
 
 func _on_restart_button_pressed() -> void:
+	_play_click_sound()
+	_stop_background_music()
+	# Longer delay to ensure click sound finishes playing
+	await get_tree().create_timer(0.5).timeout
 	# Unpause before restarting
 	get_tree().paused = false
 	get_tree().reload_current_scene()
 
 func _on_main_menu_button_pressed() -> void:
-	# Unpause before going to main menu
+	print("GameOver: Main menu button pressed!")
+	_play_click_sound()
+	_stop_background_music()
+	
+	# Unpause immediately to ensure scene change works
 	get_tree().paused = false
-	get_tree().change_scene_to_file("res://scenes/MainMenu.tscn")
+	
+	# Add delay to let click sound play
+	await get_tree().create_timer(0.3).timeout
+	_change_to_main_menu()
+
+func _change_to_main_menu() -> void:
+	print("GameOver: Attempting to change scene to MainMenu_Fixed.tscn")
+	var result = get_tree().change_scene_to_file("res://scenes/MainMenu_Fixed.tscn")
+	if result != OK:
+		print("GameOver: Failed to change scene! Error code: ", result)
+	else:
+		print("GameOver: Scene change initiated successfully")
+
+func _play_click_sound() -> void:
+	if click_sound:
+		print("GameOver: Attempting to play click sound...")
+		click_sound.play()
+		print("GameOver: Click sound played - Volume: ", click_sound.volume_db)
+		print("GameOver: Sound playing: ", click_sound.playing)
+	else:
+		print("GameOver: Click sound not available")
+
+func _play_background_music() -> void:
+	if background_music and not background_music.playing:
+		background_music.play()
+		print("GameOver: Playing background music")
+
+func _stop_background_music() -> void:
+	if background_music and background_music.playing:
+		background_music.stop()
+		print("GameOver: Stopped background music")
 
 func hide_game_over() -> void:
+	_stop_background_music()
 	visible = false
