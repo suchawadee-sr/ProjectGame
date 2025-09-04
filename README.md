@@ -8,11 +8,11 @@
 2. นางสาวสหกานต์ธีรา สังข์ขาว 663380296-6  
 3. นางสาวสุชาวดี ศรีแก้วน้ำใสย์ 663380298-2  
 4. นายอัษฎาวุธ เรือนแก้ว 663380303-5  
-
 ---
-
-**ชื่อเกม:** LONELY WOLF IN MULTIVERSE  
-*หมาป่าเดียวดายท่องพหุจักวาล*  
+**ชื่อเกม:LONELY WOLF IN MULTIVERSE**  
+**หมาป่าเดียวดายท่องพหุจักวาล**
+---
+![](https://scontent.fkkc2-1.fna.fbcdn.net/v/t1.15752-9/539669922_1105344718406710_7052994140340957774_n.png?stp=dst-png_p526x395&_nc_cat=107&ccb=1-7&_nc_sid=0024fc&_nc_eui2=AeErpUhskgvoFXaZEjwi_QYkjJLgoSljGuWMkuChKWMa5SVe2Uo8XJjECeN95ao0huRXiXXtly9VDh0pvYQER0o0&_nc_ohc=-gpC6iYyf68Q7kNvwGsS6ZY&_nc_oc=AdlpnPj3q9bIB-mWPZHlKKRD-UGrhPxQksBhPTXb4mwet-UoiQt2yuFGQUviDg1bnjM&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&_nc_ht=scontent.fkkc2-1.fna&oh=03_Q7cD3QEU51KYa-0PPzulegg32etEXYUtkozAx60H7MmAqk1sEg&oe=68E05D75)
 
 **ธีม:** แฟนตาซี  
 **แนวเกม:** Endless  
@@ -40,11 +40,11 @@
 
 ## ทดลองเล่น
 ---
-link
+link:https://suchawadee-sr.github.io/ProjectGame/?fbclid=IwY2xjawMlwQxleHRuA2FlbQIxMQABHtckGFCgFtEahSL2GI0Vn1oHTenhbEZ9Twv0GewuGzumgTbC-kTU57FVDDom_aem_CQQSz1sG35k_lxuyI01mDw
 
 ## Screenshots
 ---
-
+![](https://scontent.fkkc2-1.fna.fbcdn.net/v/t1.15752-9/542874940_1270133274318586_8441823453562721307_n.png?_nc_cat=102&ccb=1-7&_nc_sid=9f807c&_nc_eui2=AeFvhOyJQ2T0hjgoqQoWR4kF3nY9FeJQ-hbedj0V4lD6FpoUhxsqVwOLV4CWp9uX8xl1sym5qnlmNaJhwQB2MZYz&_nc_ohc=TjU2HxWHebwQ7kNvwGO8Kf8&_nc_oc=AdmM7t7Q1UmjSyx42vY5RasBhkxOfJzndexA2RbCQGddVeLHPMfiT51oj1I5q8aEauQ&_nc_zt=23&_nc_ht=scontent.fkkc2-1.fna&oh=03_Q7cD3QGZv8R9Y9D6EkOfi8KQejZ-qYdfq9X_ZUMq3wnYQF8LRg&oe=68E0436C)
 ## ตัวละคร
 ---
 มนุษย์หมาป่า ชื่อ ลูปิน
